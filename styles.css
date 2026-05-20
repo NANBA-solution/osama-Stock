@@ -465,6 +465,14 @@ body {
   color: #ffe566;
 }
 
+.quick-item--timecard {
+  border-color: rgba(100, 160, 255, 0.35);
+}
+
+.quick-item--timecard .quick-title {
+  color: #8eb8ff;
+}
+
 .quick-item--doc {
   border-color: rgba(61, 158, 106, 0.25);
 }
