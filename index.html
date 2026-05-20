@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <title>王様のスプーン｜在庫フォーム</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>在庫ストック</h1>
+      <p class="subtitle">王様のスプーン</p>
+      <label class="date-row">
+        <span>日付</span>
+        <input type="date" id="reportDate" />
+      </label>
+    </header>
+
+    <main id="formRoot"></main>
+
+    <nav class="quick-links" aria-label="よく使うリンク">
+      <p class="quick-links-title">リンク</p>
+      <ul class="quick-links-list">
+        <li>
+          <a
+            class="quick-link quick-link--external"
+            href="https://store.xorder.jp/login/line?lm=invited&amp;shop_order_supplier_id=1621530&amp;h=e404a7b2002933bd58d70b4867480c35737f89ccef53db43f99df9eb56dd666c&amp;t=1777350308.278031"
+            target="_blank"
+            rel="noopener noreferrer"
+          >🥩 肉発注</a>
+        </li>
+        <li>
+          <a class="quick-link quick-link--tel" href="tel:0663536607">🥬 野菜発注 <span class="quick-link-sub">06-6353-6607</span></a>
+        </li>
+        <li>
+          <a class="quick-link quick-link--tel" href="tel:0798454400">🛢 油回収 <span class="quick-link-sub">0798-45-4400</span></a>
+        </li>
+        <li>
+          <a class="quick-link quick-link--doc" href="staff-manual.pdf" target="_blank" rel="noopener">📖 仕込みマニュアル</a>
+        </li>
+      </ul>
+    </nav>
+
+    <footer class="footer">
+      <div class="btn-row">
+        <button type="button" id="previewBtn" class="btn btn-secondary">プレビュー</button>
+        <button type="button" id="copyBtn" class="btn btn-primary">📋 コピー</button>
+        <button type="button" id="lineShareBtn" class="btn btn-line">LINE共有</button>
+      </div>
+      <p id="toast" class="toast" hidden>コピーしました！</p>
+    </footer>
+  </div>
+
+  <dialog id="previewDialog" class="preview-dialog">
+    <div class="preview-inner">
+      <h2>共有プレビュー</h2>
+      <div id="previewText" class="preview-content"></div>
+      <div class="preview-actions">
+        <button type="button" id="copyFromPreview" class="btn btn-primary">コピー</button>
+        <button type="button" id="lineShareFromPreview" class="btn btn-line">LINE共有</button>
+        <button type="button" id="closePreview" class="btn btn-secondary">閉じる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
