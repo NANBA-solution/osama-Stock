@@ -10,6 +10,7 @@ const FORM = {
     { id: "onion", label: "オニオン", unit: "", default: 0 },
     { id: "soup", label: "スープ", unit: "", default: 0 },
     { id: "keema", label: "キーマ", unit: "タッパ", default: 2 },
+    { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0 },
   ],
   soupSales: { id: "soupSales", label: "スープ売上", default: 2 },
   meat: [

@@ -12,8 +12,8 @@
   --radius: 6px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tap: 36px;
-  --tap-sm: 30px;
+  --tap: 40px;
+  --tap-sm: 34px;
 }
 
 *,
@@ -23,7 +23,7 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 15px;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -40,7 +40,7 @@ body {
 .app {
   width: 100%;
   max-width: 100%;
-  padding-bottom: calc(88px + var(--safe-bottom));
+  padding-bottom: calc(92px + var(--safe-bottom));
 }
 
 /* Header */
@@ -93,20 +93,20 @@ body {
 
 /* Sections */
 .section {
-  padding: 0.4rem 0.65rem 0;
+  padding: 0.5rem 0.7rem 0;
 }
 
 .section-title {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.04em;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.4rem;
 }
 
 .row-grid {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.38rem;
   grid-template-columns: 1fr;
 }
 
@@ -118,7 +118,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0.35rem 0.4rem;
+  padding: 0.42rem 0.48rem;
   min-width: 0;
 }
 
@@ -128,51 +128,51 @@ body {
 
 /* 2列時はさらにコンパクト */
 .cols-2 .field-label {
-  font-size: 0.65rem;
-  margin-bottom: 0.2rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.24rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .cols-2 .stepper {
-  grid-template-columns: 1.6rem 1fr 1.6rem;
-  min-height: 26px;
+  grid-template-columns: 1.85rem 1fr 1.85rem;
+  min-height: 30px;
 }
 
 .cols-2 .stepper-btn {
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .cols-2 .stepper-input {
-  font-size: 0.85rem;
-  min-height: 26px;
+  font-size: 0.92rem;
+  min-height: 30px;
   max-width: none;
 }
 
 .cols-2 .stepper-wrap {
-  gap: 0.22rem;
+  gap: 0.26rem;
 }
 
 .cols-2 .stepper-tools {
-  gap: 0.2rem;
+  gap: 0.24rem;
 }
 
 .cols-2 .tool-btn {
-  min-height: 24px;
-  font-size: 0.62rem;
+  min-height: 28px;
+  font-size: 0.66rem;
   border-radius: 4px;
 }
 
 .cols-2 .tool-decimal {
-  font-size: 0.58rem;
+  font-size: 0.62rem;
 }
 
 .field-label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: var(--muted);
-  margin-bottom: 0.28rem;
+  margin-bottom: 0.3rem;
   line-height: 1.25;
 }
 
@@ -196,8 +196,8 @@ body {
 }
 
 .ingredient-title {
-  margin: 0 0 0.3rem;
-  font-size: 0.8rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.86rem;
   font-weight: 600;
 }
 
@@ -270,11 +270,11 @@ body {
 
 .stepper-input {
   width: 100%;
-  max-width: 4.5rem;
+  max-width: 4.75rem;
   border: none;
   background: transparent;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   text-align: center;
   font-family: inherit;
@@ -294,7 +294,7 @@ body {
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -328,12 +328,12 @@ body {
 }
 
 .timing-btn {
-  min-height: var(--tap-sm);
+  min-height: var(--tap);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
@@ -497,7 +497,7 @@ body {
 .btn {
   border: none;
   border-radius: var(--radius);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 700;
   font-family: inherit;
   min-height: var(--tap);
