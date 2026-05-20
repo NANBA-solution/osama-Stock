@@ -64,6 +64,15 @@ const FORM = {
       stockDefault: 0,
       orderDefault: 0,
     },
+    {
+      id: "tebasamoto",
+      name: "手羽元",
+      constant: "定数 2",
+      stockUnit: "",
+      orderUnit: "",
+      stockDefault: 0,
+      orderDefault: 0,
+    },
   ],
   soupIngredients: [
     { id: "siJagaimo", label: "ジャガイモ", default: 0 },
