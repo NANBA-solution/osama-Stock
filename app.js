@@ -12,6 +12,11 @@ const FORM = {
     { id: "keema", label: "キーマ", unit: "タッパ", default: 2 },
     { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0 },
   ],
+  cutStock: [
+    { id: "cutChicken", label: "チキン", unit: "", default: 0 },
+    { id: "cutSpicyChicken", label: "辛口チキン", unit: "", default: 0 },
+    { id: "cutPorkLoin", label: "豚ヘレ", unit: "", default: 0 },
+  ],
   soupSales: { id: "soupSales", label: "スープ売上", default: 2 },
   meat: [
     {
@@ -232,6 +237,9 @@ function applyDefaults() {
   FORM.ousama.forEach((f) => {
     if (state[f.id] === undefined) state[f.id] = f.default;
   });
+  FORM.cutStock.forEach((f) => {
+    if (state[f.id] === undefined) state[f.id] = f.default;
+  });
   if (state.soupSales === undefined) state.soupSales = FORM.soupSales.default;
   FORM.soupIngredients.forEach((f) => {
     if (state[f.id] === undefined) state[f.id] = f.default;
@@ -394,6 +402,15 @@ function renderForm() {
   s1.appendChild(g1);
   root.appendChild(s1);
 
+  const sCut = section("カツストック");
+  const gCut = document.createElement("div");
+  gCut.className = "row-grid cols-2";
+  FORM.cutStock.forEach((f) => {
+    gCut.appendChild(createStepper(f.id, { label: f.label, unit: f.unit }));
+  });
+  sCut.appendChild(gCut);
+  root.appendChild(sCut);
+
   const s2 = section("スープ");
   const s2grid = document.createElement("div");
   s2grid.className = "row-grid cols-2";
@@ -518,6 +535,11 @@ function buildShareText() {
     lines.push(row(f.label, num(f.id), f.unit));
   });
   lines.push("");
+  lines.push("■ カツストック");
+  FORM.cutStock.forEach((f) => {
+    lines.push(row(f.label, num(f.id), f.unit));
+  });
+  lines.push("");
   lines.push("■ スープ");
   lines.push(row(FORM.soupSales.label, num("soupSales")));
   lines.push("  ─ 具材 ─");
@@ -587,6 +609,10 @@ function renderPreviewUI() {
     <section class="preview-section">
       <h3>王様ストック</h3>
       ${FORM.ousama.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
+    </section>
+    <section class="preview-section">
+      <h3>カツストック</h3>
+      ${FORM.cutStock.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
     </section>
     <section class="preview-section">
       <h3>スープ</h3>
