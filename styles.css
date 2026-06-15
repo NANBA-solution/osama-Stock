@@ -674,6 +674,12 @@ body {
   font-size: 0.78rem;
 }
 
+.preview-tane-value {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--text);
+}
+
 .preview-note {
   margin: 0 0 0.2rem;
   font-size: 0.65rem;

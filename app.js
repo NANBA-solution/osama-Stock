@@ -4,12 +4,22 @@ const DECIMAL_STEP = 0.1;
 const DECIMAL_PLACES = 1;
 
 const FORM = {
+  tane: [
+    {
+      id: "taneOsama",
+      name: "王様",
+      hasPlus: true,
+      plusNote: "-700g",
+      stockDefault: 0,
+      plusDefault: 0,
+    },
+    { id: "onion", name: "オニオン", stockDefault: 0 },
+    { id: "soup", name: "スープ", stockDefault: 0 },
+    { id: "keema", name: "キーマ", stockDefault: 2 },
+  ],
   ousama: [
     { id: "oonabe", label: "大鍋", unit: "", default: 0 },
     { id: "chunabe", label: "中鍋", unit: "", default: 0 },
-    { id: "onion", label: "オニオン", unit: "", default: 0 },
-    { id: "soup", label: "スープ", unit: "", default: 0 },
-    { id: "keema", label: "キーマ", unit: "タッパ", default: 2 },
     { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0 },
   ],
   cutStock: [
@@ -243,6 +253,18 @@ function saveState() {
 }
 
 function applyDefaults() {
+  FORM.tane.forEach((item) => {
+    if (!item.hasPlus && state[item.id] !== undefined && state[`${item.id}_stock`] === undefined) {
+      state[`${item.id}_stock`] = state[item.id];
+      delete state[item.id];
+    }
+    if (state[`${item.id}_stock`] === undefined) {
+      state[`${item.id}_stock`] = item.stockDefault;
+    }
+    if (item.hasPlus && state[`${item.id}_plus`] === undefined) {
+      state[`${item.id}_plus`] = item.plusDefault;
+    }
+  });
   FORM.ousama.forEach((f) => {
     if (state[f.id] === undefined) state[f.id] = f.default;
   });
@@ -402,6 +424,10 @@ function renderForm() {
   const root = document.getElementById("formRoot");
   root.innerHTML = "";
 
+  const sTane = section("タネ");
+  FORM.tane.forEach((item) => sTane.appendChild(renderTaneItem(item)));
+  root.appendChild(sTane);
+
   const s1 = section("王様ストック");
   const g1 = document.createElement("div");
   g1.className = "row-grid cols-2";
@@ -492,6 +518,29 @@ function renderIngredient(ing) {
   return block;
 }
 
+function renderTaneItem(item) {
+  const block = document.createElement("div");
+  block.className = "ingredient-group";
+  const title = document.createElement("p");
+  title.className = "ingredient-title";
+  title.textContent = item.name;
+  block.appendChild(title);
+
+  const grid = document.createElement("div");
+  grid.className = item.hasPlus ? "row-grid cols-2" : "row-grid";
+  grid.appendChild(createStepper(`${item.id}_stock`, { label: "在庫" }));
+  if (item.hasPlus) {
+    grid.appendChild(
+      createStepper(`${item.id}_plus`, {
+        label: "＋",
+        small: item.plusNote,
+      })
+    );
+  }
+  block.appendChild(grid);
+  return block;
+}
+
 function updateTimingUI(group) {
   group.querySelectorAll(".timing-btn").forEach((btn) => {
     btn.classList.remove("selected-good", "selected-bad");
@@ -530,6 +579,32 @@ function row(label, value, unit = "") {
   return `  ${label}${pad}：${qtyWithUnit(value, unit)}`;
 }
 
+function taneShareLines(item) {
+  const stock = num(`${item.id}_stock`);
+  const lines = [`【${item.name}】`];
+  if (item.hasPlus) {
+    const plus = num(`${item.id}_plus`);
+    lines.push(
+      `  在庫　${formatQty(stock)}　＋　${formatQty(plus)}（${item.plusNote}）`
+    );
+  } else {
+    lines.push(`  在庫　${formatQty(stock)}`);
+  }
+  return lines;
+}
+
+function tanePreviewHtml(item) {
+  const stock = num(`${item.id}_stock`);
+  const value = item.hasPlus
+    ? `在庫 ${formatQty(stock)} ＋ ${formatQty(num(`${item.id}_plus`))}（${item.plusNote}）`
+    : `在庫 ${formatQty(stock)}`;
+  return `
+        <div class="preview-ingredient">
+          <p class="preview-item-title">${escapeHtml(item.name)}</p>
+          <p class="preview-tane-value">${escapeHtml(value)}</p>
+        </div>`;
+}
+
 function buildShareText() {
   const dateEl = document.getElementById("reportDate");
   const dateStr = formatDateJP(dateEl?.value || todayISO());
@@ -538,6 +613,12 @@ function buildShareText() {
   lines.push(`📅 ${dateStr}`);
   lines.push("王様のスプーン｜在庫レポート");
   lines.push(DIVIDER);
+  lines.push("");
+  lines.push("■ タネ");
+  FORM.tane.forEach((item) => {
+    lines.push("");
+    lines.push(...taneShareLines(item));
+  });
   lines.push("");
   lines.push("■ 王様ストック");
   FORM.ousama.forEach((f) => {
@@ -615,6 +696,10 @@ function renderPreviewUI() {
       <p class="preview-date">📅 ${escapeHtml(dateStr)}</p>
       <p class="preview-title">王様のスプーン｜在庫レポート</p>
     </div>
+    <section class="preview-section">
+      <h3>タネ</h3>
+      ${FORM.tane.map((item) => tanePreviewHtml(item)).join("")}
+    </section>
     <section class="preview-section">
       <h3>王様ストック</h3>
       ${FORM.ousama.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
