@@ -53,7 +53,7 @@ body {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding-bottom: calc(104px + var(--safe-bottom));
+  padding-bottom: calc(108px + var(--safe-bottom));
 }
 
 /* Header */
@@ -554,6 +554,51 @@ body {
   color: #fff;
 }
 
+.timing-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.remark-field {
+  margin-top: 0.15rem;
+}
+
+.remark-field .field-label {
+  margin-bottom: 0.35rem;
+}
+
+.remark-input {
+  display: block;
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 0.6rem 0.65rem;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  line-height: 1.45;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.remark-input::placeholder {
+  color: var(--muted);
+}
+
+.remark-input:focus {
+  outline: none;
+  border-color: var(--section-color, var(--accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--section-color, var(--accent)) 15%, transparent);
+}
+
+[class*="section--timing"] .remark-input:focus {
+  border-color: var(--section-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--section-color) 15%, transparent);
+}
+
 /* Quick links */
 .quick-links {
   margin: 0.65rem 1rem 0.85rem;
@@ -701,6 +746,151 @@ body {
 
 .quick-item--doc {
   border-left-color: #16a34a !important;
+}
+
+/* Usage guide */
+.usage-guide {
+  margin: 0.65rem 1rem 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.usage-details {
+  padding: 0;
+}
+
+.usage-details > summary {
+  list-style: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  padding: 0.85rem 1rem;
+}
+
+.usage-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.usage-guide-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+}
+
+.usage-guide-heading::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.usage-guide-heading::after {
+  content: "›";
+  margin-left: auto;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+.usage-details[open] > summary.usage-guide-heading::after {
+  transform: rotate(-90deg);
+}
+
+.usage-body {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.usage-details[open] .usage-body {
+  padding-top: 0.85rem;
+}
+
+.usage-block + .usage-block {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.usage-block-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.usage-block p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.usage-block p + p {
+  margin-top: 0.45rem;
+}
+
+.usage-block strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.usage-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.usage-list li + li {
+  margin-top: 0.3rem;
+}
+
+.usage-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.usage-subtitle {
+  margin: 0.65rem 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.usage-subtitle:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.usage-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.usage-steps li + li {
+  margin-top: 0.3rem;
+}
+
+.usage-steps strong {
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Footer */
@@ -1001,4 +1191,25 @@ body {
   font-weight: 600;
   text-align: center;
   letter-spacing: -0.02em;
+}
+
+.preview-remark {
+  margin: 0.65rem 0 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.preview-remark-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
 }

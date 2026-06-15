@@ -315,6 +315,7 @@ function applyDefaults() {
     }
   });
   if (!state.timing) state.timing = "";
+  if (state.remark === undefined) state.remark = "";
 }
 
 function createStepper(id, { label, unit = "", step = INTEGER_STEP, min = 0, max = 999, small = "" }) {
@@ -598,6 +599,9 @@ function updateTimingUI(group) {
 }
 
 function renderTiming() {
+  const wrap = document.createElement("div");
+  wrap.className = "timing-block";
+
   const g = document.createElement("div");
   g.className = "timing-group";
   [
@@ -617,7 +621,32 @@ function renderTiming() {
     g.appendChild(btn);
   });
   updateTimingUI(g);
-  return g;
+  wrap.appendChild(g);
+
+  const remarkWrap = document.createElement("div");
+  remarkWrap.className = "remark-field";
+
+  const label = document.createElement("label");
+  label.className = "field-label";
+  label.setAttribute("for", "timingRemark");
+  label.textContent = "備考";
+
+  const textarea = document.createElement("textarea");
+  textarea.id = "timingRemark";
+  textarea.className = "remark-input";
+  textarea.rows = 3;
+  textarea.placeholder = "コメントがあれば入力";
+  textarea.value = state.remark || "";
+  textarea.addEventListener("input", () => {
+    state.remark = textarea.value;
+    saveState();
+  });
+
+  remarkWrap.appendChild(label);
+  remarkWrap.appendChild(textarea);
+  wrap.appendChild(remarkWrap);
+
+  return wrap;
 }
 
 function row(label, value, unit = "") {
@@ -740,6 +769,10 @@ function buildShareText() {
   const timingLabel =
     state.timing === "good" ? "◎ 良い" : state.timing === "bad" ? "△ 悪い" : "（未選択）";
   lines.push(`■ タイミー評価　${timingLabel}`);
+  const remark = String(state.remark || "").trim();
+  if (remark) {
+    lines.push(`  備考：${remark}`);
+  }
 
   return lines.join("\n").trimEnd();
 }
@@ -765,6 +798,10 @@ function renderPreviewUI() {
   const dateStr = formatDateJP(dateEl?.value || todayISO());
   const timingLabel =
     state.timing === "good" ? "◎ 良い" : state.timing === "bad" ? "△ 悪い" : "（未選択）";
+  const remark = String(state.remark || "").trim();
+  const remarkHtml = remark
+    ? `<p class="preview-remark"><span class="preview-remark-label">備考</span>${escapeHtml(remark).replace(/\n/g, "<br>")}</p>`
+    : "";
 
   el.innerHTML = `
     <div class="preview-head">
@@ -834,6 +871,7 @@ function renderPreviewUI() {
     <section class="preview-section preview-timing">
       <h3>タイミー評価</h3>
       <p class="preview-timing-value">${escapeHtml(timingLabel)}</p>
+      ${remarkHtml}
     </section>
   `;
   el.dataset.plain = buildShareText();
