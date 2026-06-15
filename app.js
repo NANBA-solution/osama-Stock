@@ -8,18 +8,17 @@ const FORM = {
     {
       id: "taneOsama",
       name: "王様",
-      hasPlus: true,
-      plusNote: "-700g",
       stockDefault: 0,
-      plusDefault: 0,
     },
     { id: "onion", name: "オニオン", stockDefault: 0 },
     { id: "soup", name: "スープ", stockDefault: 0 },
     { id: "keema", name: "キーマ", stockDefault: 2 },
   ],
   ousama: [
-    { id: "oonabe", label: "大鍋", unit: "", default: 0 },
-    { id: "chunabe", label: "中鍋", unit: "", default: 0 },
+    { id: "oonabe", label: "王様大鍋", unit: "", default: 0 },
+    { id: "chunabe", label: "王様中鍋", unit: "", default: 0 },
+    { id: "osama", label: "オニオン鍋", unit: "", default: 0 },
+    { id: "soupNabe", label: "スープ鍋", unit: "", default: 0 },
     { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0 },
   ],
   cutStock: [
@@ -183,6 +182,30 @@ const FORM = {
       orderDefault: 0,
     },
   ],
+  takeout: [
+    {
+      name: "王様/オニオン/キーマ用",
+      type: "pair",
+      uta: { id: "takeOok_uta", default: 0 },
+      futa: { id: "takeOok_futa", default: 0 },
+    },
+    {
+      name: "スープ/具材用",
+      type: "pair",
+      uta: { id: "takeSoupIng_uta", default: 0 },
+      futa: { id: "takeSoupIng_futa", default: 0 },
+    },
+    {
+      name: "スープ/皿用",
+      type: "pair",
+      uta: { id: "takeSoupPlate_uta", default: 0 },
+      futa: { id: "takeSoupPlate_futa", default: 0 },
+    },
+    { name: "箸", type: "stock", id: "takeHashi", default: 0 },
+    { name: "スプーン", type: "stock", id: "takeSpoon", default: 0 },
+    { name: "ペーパー", type: "stock", id: "takePaper", default: 0 },
+    { name: "サランラップ", type: "stock", id: "takeSaran", default: 0 },
+  ],
 };
 
 const STORAGE_KEY = "osama-stock-form-v1";
@@ -282,6 +305,14 @@ function applyDefaults() {
   FORM.ingredients.forEach((ing) => {
     if (state[`${ing.id}_stock`] === undefined) state[`${ing.id}_stock`] = ing.stockDefault;
     if (state[`${ing.id}_order`] === undefined) state[`${ing.id}_order`] = ing.orderDefault;
+  });
+  FORM.takeout.forEach((group) => {
+    if (group.type === "pair") {
+      if (state[group.uta.id] === undefined) state[group.uta.id] = group.uta.default;
+      if (state[group.futa.id] === undefined) state[group.futa.id] = group.futa.default;
+    } else if (state[group.id] === undefined) {
+      state[group.id] = group.default;
+    }
   });
   if (!state.timing) state.timing = "";
 }
@@ -424,11 +455,16 @@ function renderForm() {
   const root = document.getElementById("formRoot");
   root.innerHTML = "";
 
-  const sTane = section("タネ");
-  FORM.tane.forEach((item) => sTane.appendChild(renderTaneItem(item)));
+  const sTane = section("タネストック", "tane");
+  const gTane = document.createElement("div");
+  gTane.className = "row-grid cols-2";
+  FORM.tane.forEach((item) => {
+    gTane.appendChild(createStepper(`${item.id}_stock`, { label: item.name }));
+  });
+  sTane.appendChild(gTane);
   root.appendChild(sTane);
 
-  const s1 = section("王様ストック");
+  const s1 = section("ルーストック", "ruu");
   const g1 = document.createElement("div");
   g1.className = "row-grid cols-2";
   FORM.ousama.forEach((f) => {
@@ -437,7 +473,7 @@ function renderForm() {
   s1.appendChild(g1);
   root.appendChild(s1);
 
-  const sCut = section("カツストック");
+  const sCut = section("カツストック", "katsu");
   const gCut = document.createElement("div");
   gCut.className = "row-grid cols-2";
   FORM.cutStock.forEach((f) => {
@@ -446,7 +482,7 @@ function renderForm() {
   sCut.appendChild(gCut);
   root.appendChild(sCut);
 
-  const s2 = section("スープ");
+  const s2 = section("スープ", "soup");
   const s2grid = document.createElement("div");
   s2grid.className = "row-grid cols-2";
   const soupSalesCard = createStepper("soupSales", { label: FORM.soupSales.label });
@@ -469,26 +505,35 @@ function renderForm() {
   s2.appendChild(s2b);
   root.appendChild(s2);
 
-  const s3 = section("具材・在庫");
+  const s3 = section("具材・在庫", "veg");
   const hint = document.createElement("p");
   hint.className = "step-hint";
-  hint.textContent = "±は1ずつ｜0でリセット｜半分は±0.1";
+  hint.textContent = "±1ずつ変更｜0でリセット｜半分は±0.1";
   s3.appendChild(hint);
   FORM.ingredients.forEach((ing) => s3.appendChild(renderIngredient(ing)));
   root.appendChild(s3);
 
-  const sMeat = section("お肉");
+  const sMeat = section("お肉", "meat");
   FORM.meat.forEach((item) => sMeat.appendChild(renderIngredient(item)));
   root.appendChild(sMeat);
 
-  const s4 = section("タイミー評価");
+  const sTakeout = section("テイクアウト用容器", "takeout");
+  const gTakeout = document.createElement("div");
+  gTakeout.className = "row-grid cols-2 takeout-grid";
+  FORM.takeout.forEach((group) => gTakeout.appendChild(renderTakeoutGroup(group)));
+  sTakeout.appendChild(gTakeout);
+  root.appendChild(sTakeout);
+
+  const s4 = section("タイミー評価", "timing");
   s4.appendChild(renderTiming());
   root.appendChild(s4);
 }
 
-function section(title) {
+function section(title, variant = "") {
   const el = document.createElement("section");
-  el.className = "section";
+  el.className = variant
+    ? `section section-card section--${variant}`
+    : "section section-card";
   const h = document.createElement("p");
   h.className = "section-title";
   h.textContent = title;
@@ -518,26 +563,23 @@ function renderIngredient(ing) {
   return block;
 }
 
-function renderTaneItem(item) {
+function renderTakeoutGroup(group) {
   const block = document.createElement("div");
-  block.className = "ingredient-group";
+  block.className = "takeout-card";
   const title = document.createElement("p");
-  title.className = "ingredient-title";
-  title.textContent = item.name;
+  title.className = "takeout-card-title";
+  title.textContent = group.name;
   block.appendChild(title);
 
-  const grid = document.createElement("div");
-  grid.className = item.hasPlus ? "row-grid cols-2" : "row-grid";
-  grid.appendChild(createStepper(`${item.id}_stock`, { label: "在庫" }));
-  if (item.hasPlus) {
-    grid.appendChild(
-      createStepper(`${item.id}_plus`, {
-        label: "＋",
-        small: item.plusNote,
-      })
-    );
+  if (group.type === "pair") {
+    const grid = document.createElement("div");
+    grid.className = "row-grid cols-2";
+    grid.appendChild(createStepper(group.uta.id, { label: "器" }));
+    grid.appendChild(createStepper(group.futa.id, { label: "蓋" }));
+    block.appendChild(grid);
+  } else {
+    block.appendChild(createStepper(group.id, { label: "在庫" }));
   }
-  block.appendChild(grid);
   return block;
 }
 
@@ -605,6 +647,29 @@ function tanePreviewHtml(item) {
         </div>`;
 }
 
+function takeoutShareLines(group) {
+  const lines = [`【${group.name}】`];
+  if (group.type === "pair") {
+    lines.push(`  器：在庫　${formatQty(num(group.uta.id))}`);
+    lines.push(`  蓋：在庫　${formatQty(num(group.futa.id))}`);
+  } else {
+    lines.push(`  在庫：${formatQty(num(group.id))}`);
+  }
+  return lines;
+}
+
+function takeoutPreviewHtml(group) {
+  const body =
+    group.type === "pair"
+      ? `器：在庫 ${formatQty(num(group.uta.id))}<br>蓋：在庫 ${formatQty(num(group.futa.id))}`
+      : `在庫：${formatQty(num(group.id))}`;
+  return `
+        <div class="preview-ingredient">
+          <p class="preview-item-title">${escapeHtml(group.name)}</p>
+          <p class="preview-tane-value">${body}</p>
+        </div>`;
+}
+
 function buildShareText() {
   const dateEl = document.getElementById("reportDate");
   const dateStr = formatDateJP(dateEl?.value || todayISO());
@@ -614,13 +679,13 @@ function buildShareText() {
   lines.push("王様のスプーン｜在庫レポート");
   lines.push(DIVIDER);
   lines.push("");
-  lines.push("■ タネ");
+  lines.push("■ タネストック");
   FORM.tane.forEach((item) => {
     lines.push("");
     lines.push(...taneShareLines(item));
   });
   lines.push("");
-  lines.push("■ 王様ストック");
+  lines.push("■ ルーストック");
   FORM.ousama.forEach((f) => {
     lines.push(row(f.label, num(f.id), f.unit));
   });
@@ -661,6 +726,12 @@ function buildShareText() {
     );
   });
   lines.push("");
+  lines.push("■ テイクアウト用容器");
+  FORM.takeout.forEach((group) => {
+    lines.push("");
+    lines.push(...takeoutShareLines(group));
+  });
+  lines.push("");
   lines.push(DIVIDER);
   const timingLabel =
     state.timing === "good" ? "◎ 良い" : state.timing === "bad" ? "△ 悪い" : "（未選択）";
@@ -697,11 +768,11 @@ function renderPreviewUI() {
       <p class="preview-title">王様のスプーン｜在庫レポート</p>
     </div>
     <section class="preview-section">
-      <h3>タネ</h3>
+      <h3>タネストック</h3>
       ${FORM.tane.map((item) => tanePreviewHtml(item)).join("")}
     </section>
     <section class="preview-section">
-      <h3>王様ストック</h3>
+      <h3>ルーストック</h3>
       ${FORM.ousama.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
     </section>
     <section class="preview-section">
@@ -751,6 +822,10 @@ function renderPreviewUI() {
         </div>`;
         })
         .join("")}
+    </section>
+    <section class="preview-section">
+      <h3>テイクアウト用容器</h3>
+      ${FORM.takeout.map((group) => takeoutPreviewHtml(group)).join("")}
     </section>
     <section class="preview-section preview-timing">
       <h3>タイミー評価</h3>
