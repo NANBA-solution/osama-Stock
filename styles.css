@@ -113,7 +113,7 @@ body {
 
 /* Sections */
 .section {
-  padding: 0.4rem 1rem 0;
+  padding: 0;
 }
 
 .section-card {
@@ -126,7 +126,7 @@ body {
 }
 
 .section-card.section {
-  padding-bottom: 1.1rem;
+  padding: 1rem 1rem 1.1rem;
 }
 
 .section-title {
@@ -200,24 +200,28 @@ body {
   border-left: 3px solid var(--section-color);
 }
 
-[class*="section--"] .field-card {
-  background: rgba(255, 255, 255, 0.72);
+[class*="section--"] .field-card,
+[class*="section--"] .ingredient-group,
+[class*="section--"] .takeout-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-[class*="section--"] .ingredient-group {
-  background: rgba(255, 255, 255, 0.72);
-}
-
-[class*="section--"] .field-label {
+[class*="section--"] .field-label,
+[class*="section--"] .takeout-card-title {
   color: var(--section-color);
-  opacity: 0.9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 1;
 }
 
 [class*="section--"] .ingredient-title {
   color: var(--text);
+  font-size: 0.8125rem;
 }
 
-[class*="section--"] .ingredient-title::before {
+[class*="section--"] .ingredient-title::before,
+[class*="section--"] .takeout-card-title::before {
   content: "";
   display: inline-block;
   width: 0.35rem;
@@ -229,23 +233,33 @@ body {
   transform: translateY(-1px);
 }
 
+[class*="section--"] .subsection-title {
+  color: var(--section-color);
+  border-left: 3px solid var(--section-color);
+  padding-left: 0.45rem;
+}
+
 .takeout-grid {
   gap: 0.5rem;
 }
 
 .takeout-card {
-  background: rgba(255, 255, 255, 0.72);
   border-radius: var(--radius-sm);
-  padding: 0.55rem 0.6rem;
+  padding: 0.6rem 0.65rem;
   min-width: 0;
 }
 
+.takeout-card--pair {
+  grid-column: 1 / -1;
+}
+
 .takeout-card-title {
-  margin: 0 0 0.4rem;
+  display: flex;
+  align-items: center;
+  margin: 0 0 0.35rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
@@ -303,19 +317,20 @@ body {
 }
 
 .cols-2 .tool-btn {
-  min-height: 32px;
-  font-size: 0.6875rem;
+  min-height: 34px;
+  font-size: 0.75rem;
+  padding: 0 0.2rem;
 }
 
 .cols-2 .tool-decimal {
-  font-size: 0.625rem;
+  font-size: inherit;
 }
 
 .field-label {
   display: block;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-secondary);
   margin-bottom: 0.4rem;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -373,7 +388,7 @@ body {
   font-weight: 600;
   color: var(--muted);
   margin: 0.65rem 0 0.5rem;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
 /* Stepper */
@@ -452,20 +467,19 @@ body {
 }
 
 .tool-btn {
-  min-height: 32px;
-  border: none;
+  min-height: 34px;
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-xs);
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  padding: 0 0.2rem;
-  border: 1px solid var(--border-input);
+  padding: 0 0.25rem;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -474,15 +488,36 @@ body {
 }
 
 .tool-zero.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--section-color, var(--accent));
+  border-color: var(--section-color, var(--accent));
   color: #fff;
 }
 
 .tool-decimal {
-  font-size: 0.6875rem;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  line-height: 1;
+  padding: 0.2rem 0.15rem;
+}
+
+.tool-decimal-sign {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tool-decimal-num {
+  font-size: 0.625rem;
+  font-weight: 600;
   color: var(--muted);
+  margin-top: 0.1rem;
+}
+
+.tool-zero {
+  font-size: 0.9375rem;
 }
 
 /* Timing */
@@ -530,12 +565,23 @@ body {
 }
 
 .quick-links-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0 0 0.75rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.quick-links-heading::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--muted);
 }
 
 .quick-links-block + .quick-links-block {
@@ -831,10 +877,12 @@ body {
 
 .preview-section h3::before {
   content: "";
+  flex-shrink: 0;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
   background: var(--section-color, var(--text));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--section-color, var(--text)) 12%, transparent);
 }
 
 .preview-content > .preview-section:nth-child(2) {
@@ -900,11 +948,11 @@ body {
 
 .preview-sub {
   margin: 0.4rem 0 0.25rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--section-color, var(--muted));
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
 .preview-ingredient {

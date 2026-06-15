@@ -339,6 +339,15 @@ function parseInputVal(str) {
   return Number.isNaN(v) ? null : v;
 }
 
+function createDecimalToolBtn(sign, ariaLabel) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "tool-btn tool-decimal";
+  btn.setAttribute("aria-label", ariaLabel);
+  btn.innerHTML = `<span class="tool-decimal-sign">${sign}</span><span class="tool-decimal-num">0.1</span>`;
+  return btn;
+}
+
 function buildStepperEl(id, { step = INTEGER_STEP, min = 0, max = 999 }) {
   const wrap = document.createElement("div");
   wrap.className = "stepper-wrap";
@@ -382,16 +391,10 @@ function buildStepperEl(id, { step = INTEGER_STEP, min = 0, max = 999 }) {
   zeroBtn.type = "button";
   zeroBtn.className = "tool-btn tool-zero";
   zeroBtn.textContent = "0";
+  zeroBtn.setAttribute("aria-label", "0にリセット");
 
-  const btnDecTenth = document.createElement("button");
-  btnDecTenth.type = "button";
-  btnDecTenth.className = "tool-btn tool-decimal";
-  btnDecTenth.textContent = "−0.1";
-
-  const btnIncTenth = document.createElement("button");
-  btnIncTenth.type = "button";
-  btnIncTenth.className = "tool-btn tool-decimal";
-  btnIncTenth.textContent = "＋0.1";
+  const btnDecTenth = createDecimalToolBtn("−", "0.1減らす");
+  const btnIncTenth = createDecimalToolBtn("＋", "0.1増やす");
 
   tools.appendChild(zeroBtn);
   tools.appendChild(btnDecTenth);
@@ -508,7 +511,7 @@ function renderForm() {
   const s3 = section("具材・在庫", "veg");
   const hint = document.createElement("p");
   hint.className = "step-hint";
-  hint.textContent = "±1ずつ変更｜0でリセット｜半分は±0.1";
+  hint.textContent = "±1ずつ｜0でリセット｜0.1は下のボタン";
   s3.appendChild(hint);
   FORM.ingredients.forEach((ing) => s3.appendChild(renderIngredient(ing)));
   root.appendChild(s3);
@@ -565,7 +568,8 @@ function renderIngredient(ing) {
 
 function renderTakeoutGroup(group) {
   const block = document.createElement("div");
-  block.className = "takeout-card";
+  block.className =
+    group.type === "pair" ? "takeout-card takeout-card--pair" : "takeout-card";
   const title = document.createElement("p");
   title.className = "takeout-card-title";
   title.textContent = group.name;
@@ -661,8 +665,8 @@ function takeoutShareLines(group) {
 function takeoutPreviewHtml(group) {
   const body =
     group.type === "pair"
-      ? `器：在庫 ${formatQty(num(group.uta.id))}<br>蓋：在庫 ${formatQty(num(group.futa.id))}`
-      : `在庫：${formatQty(num(group.id))}`;
+      ? `器：在庫 ${escapeHtml(formatQty(num(group.uta.id)))}<br>蓋：在庫 ${escapeHtml(formatQty(num(group.futa.id)))}`
+      : `在庫：${escapeHtml(formatQty(num(group.id)))}`;
   return `
         <div class="preview-ingredient">
           <p class="preview-item-title">${escapeHtml(group.name)}</p>
