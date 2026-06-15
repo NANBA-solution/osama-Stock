@@ -318,6 +318,43 @@ function applyDefaults() {
   if (state.remark === undefined) state.remark = "";
 }
 
+function resetAllToZero() {
+  FORM.tane.forEach((item) => {
+    state[`${item.id}_stock`] = 0;
+    if (item.hasPlus) state[`${item.id}_plus`] = 0;
+  });
+  FORM.ousama.forEach((f) => {
+    state[f.id] = 0;
+  });
+  FORM.cutStock.forEach((f) => {
+    state[f.id] = 0;
+  });
+  state.soupSales = 0;
+  FORM.soupIngredients.forEach((f) => {
+    state[f.id] = 0;
+  });
+  FORM.meat.forEach((ing) => {
+    state[`${ing.id}_stock`] = 0;
+    state[`${ing.id}_order`] = 0;
+  });
+  FORM.ingredients.forEach((ing) => {
+    state[`${ing.id}_stock`] = 0;
+    state[`${ing.id}_order`] = 0;
+  });
+  FORM.takeout.forEach((group) => {
+    if (group.type === "pair") {
+      state[group.uta.id] = 0;
+      state[group.futa.id] = 0;
+    } else {
+      state[group.id] = 0;
+    }
+  });
+  state.timing = "";
+  state.remark = "";
+  saveState();
+  renderForm();
+}
+
 function createStepper(id, { label, unit = "", step = INTEGER_STEP, min = 0, max = 999, small = "" }) {
   const wrap = document.createElement("div");
   wrap.className = "field-card";
@@ -981,6 +1018,16 @@ function init() {
   document.getElementById("lineShareFromPreview").addEventListener("click", () => {
     shareToLine(getText());
     closeDialog(previewDialog);
+    if (navigator.vibrate) navigator.vibrate(30);
+  });
+
+  document.getElementById("resetAllBtn")?.addEventListener("click", () => {
+    const ok = window.confirm(
+      "すべての在庫・発注を0にし、備考とタイミー評価を空にします。よろしいですか？"
+    );
+    if (!ok) return;
+    resetAllToZero();
+    showToast("すべて0にしました");
     if (navigator.vibrate) navigator.vibrate(30);
   });
 }

@@ -748,6 +748,98 @@ body {
   border-left-color: #16a34a !important;
 }
 
+/* Reset panel */
+.reset-panel {
+  margin: 0.65rem 1rem 0;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.reset-details {
+  padding: 0;
+}
+
+.reset-details > summary {
+  list-style: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  padding: 0.85rem 1rem;
+}
+
+.reset-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.reset-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+}
+
+.reset-heading::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bad);
+  flex-shrink: 0;
+}
+
+.reset-heading::after {
+  content: "›";
+  margin-left: auto;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+}
+
+.reset-details[open] > summary.reset-heading::after {
+  transform: rotate(-90deg);
+}
+
+.reset-body {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.reset-details[open] .reset-body {
+  padding-top: 0.85rem;
+}
+
+.reset-body p {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.reset-body strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.btn-reset {
+  width: 100%;
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  background: rgba(185, 28, 28, 0.08);
+  color: var(--bad);
+}
+
+.btn-reset:active {
+  background: rgba(185, 28, 28, 0.16);
+}
+
 /* Usage guide */
 .usage-guide {
   margin: 0.65rem 1rem 1rem;
