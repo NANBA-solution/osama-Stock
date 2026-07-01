@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   <meta name="apple-mobile-web-app-title" content="在庫フォーム" />
   <title>王様のスプーン｜在庫フォーム</title>
-  <link rel="stylesheet" href="styles.css?v=20250702" />
+  <link rel="stylesheet" href="styles.css?v=20250703" />
 </head>
 <body>
   <div class="app">
@@ -142,7 +142,7 @@
       <details class="reset-details">
         <summary class="reset-heading">在庫・備考をリセット</summary>
         <div class="reset-body">
-          <p>すべての在庫・発注を<strong>0</strong>にし、備考とタイミー評価を空にします。日付はそのまま残ります。</p>
+          <p>すべての在庫・発注を<strong>0</strong>にし、仕込み・備考・タイミー評価を空にします。日付はそのまま残ります。</p>
           <button type="button" id="resetAllBtn" class="btn btn-reset">すべて0にする</button>
         </div>
       </details>
@@ -169,8 +169,9 @@
       </article>
 
       <article class="usage-block">
-        <h3 class="usage-block-title">3. タイミー評価と備考</h3>
-        <p>一番下の<strong>タイミー評価</strong>で「良い」「悪い」を選びます。同じボタンをもう一度押すと選択を解除できます。</p>
+        <h3 class="usage-block-title">3. 仕込みとタイミー評価</h3>
+        <p><strong>仕込み</strong>で、今日やった種類（王様・オニオン・キーマ・スープ・スープ野菜）をタップして記録します。もう一度タップで解除できます。</p>
+        <p><strong>タイミー評価</strong>で「良い」「悪い」を選びます。同じボタンをもう一度押すと選択を解除できます。</p>
         <p>その下の<strong>備考</strong>欄に、伝えたいことがあれば自由にコメントを書いてください。</p>
       </article>
 
@@ -241,8 +242,8 @@
     </div>
   </dialog>
 
-  <script src="app-data.js?v=20250702"></script>
-  <script src="app.js?v=20250702"></script>
-  <script src="sheets-sync.js?v=20250702"></script>
+  <script src="app-data.js?v=20250703"></script>
+  <script src="app.js?v=20250703"></script>
+  <script src="sheets-sync.js?v=20250703"></script>
 </body>
 </html>

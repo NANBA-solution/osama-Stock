@@ -206,6 +206,13 @@ const FORM = {
     { name: "ペーパー", type: "stock", id: "takePaper", default: 0 },
     { name: "サランラップ", type: "stock", id: "takeSaran", default: 0 },
   ],
+  prep: [
+    { id: "prepOsama", label: "王様" },
+    { id: "prepOnion", label: "オニオン" },
+    { id: "prepKeema", label: "キーマ" },
+    { id: "prepSoup", label: "スープ" },
+    { id: "prepSoupVeg", label: "スープ野菜" },
+  ],
 };
 
 const STORAGE_KEY = "osama-stock-form-v1";
@@ -325,6 +332,9 @@ function applyDefaults() {
   });
   if (!state.timing) state.timing = "";
   if (state.remark === undefined) state.remark = "";
+  FORM.prep.forEach((item) => {
+    if (state[item.id] === undefined) state[item.id] = false;
+  });
 }
 
 function resetAllToZero() {
@@ -360,6 +370,9 @@ function resetAllToZero() {
   });
   state.timing = "";
   state.remark = "";
+  FORM.prep.forEach((item) => {
+    state[item.id] = false;
+  });
   saveState();
   renderForm();
 }
@@ -580,6 +593,10 @@ function renderForm() {
   sTakeout.appendChild(gTakeout);
   root.appendChild(sTakeout);
 
+  const sPrep = section("仕込み", "prep");
+  sPrep.appendChild(renderPrep());
+  root.appendChild(sPrep);
+
   const s4 = section("タイミー評価", "timing");
   s4.appendChild(renderTiming());
   root.appendChild(s4);
@@ -638,6 +655,68 @@ function renderTakeoutGroup(group) {
     block.appendChild(createStepper(group.id, { label: "在庫" }));
   }
   return block;
+}
+
+function getDonePrepItems() {
+  return FORM.prep.filter((item) => state[item.id]);
+}
+
+function updatePrepUI(group) {
+  group.querySelectorAll(".prep-tab").forEach((btn) => {
+    const id = btn.dataset.prepId;
+    const done = !!state[id];
+    btn.classList.toggle("prep-tab--done", done);
+    btn.setAttribute("aria-pressed", done ? "true" : "false");
+  });
+}
+
+function updatePrepStatus(el) {
+  if (!el) return;
+  const done = getDonePrepItems();
+  el.textContent = done.length
+    ? `本日：${done.map((item) => item.label).join("、")}`
+    : "タップして仕込みを記録";
+}
+
+function renderPrep() {
+  const wrap = document.createElement("div");
+  wrap.className = "prep-block";
+
+  const g = document.createElement("div");
+  g.className = "prep-tabs";
+  g.setAttribute("role", "group");
+  g.setAttribute("aria-label", "仕込み種別");
+
+  const status = document.createElement("p");
+  status.className = "prep-status";
+
+  FORM.prep.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "prep-tab";
+    btn.dataset.prepId = item.id;
+    btn.textContent = item.label;
+    btn.setAttribute("aria-pressed", "false");
+    btn.addEventListener("click", () => {
+      state[item.id] = !state[item.id];
+      saveState();
+      updatePrepUI(g);
+      updatePrepStatus(status);
+    });
+    g.appendChild(btn);
+  });
+
+  wrap.appendChild(g);
+  wrap.appendChild(status);
+  updatePrepUI(g);
+  updatePrepStatus(status);
+  return wrap;
+}
+
+function prepShareLines() {
+  const done = getDonePrepItems();
+  if (!done.length) return [];
+  return ["■ 本日の仕込み", `  ${done.map((item) => item.label).join("、")}`];
 }
 
 function updateTimingUI(group) {
@@ -817,6 +896,11 @@ function buildShareText() {
     lines.push(...takeoutShareLines(group));
   });
   lines.push("");
+  const prepLines = prepShareLines();
+  if (prepLines.length) {
+    lines.push(...prepLines);
+    lines.push("");
+  }
   lines.push(DIVIDER);
   const timingLabel =
     state.timing === "good" ? "◎ 良い" : state.timing === "bad" ? "△ 悪い" : "（未選択）";
@@ -853,6 +937,13 @@ function renderPreviewUI() {
   const remark = String(state.remark || "").trim();
   const remarkHtml = remark
     ? `<p class="preview-remark"><span class="preview-remark-label">備考</span>${escapeHtml(remark).replace(/\n/g, "<br>")}</p>`
+    : "";
+  const donePrep = getDonePrepItems();
+  const prepHtml = donePrep.length
+    ? `<section class="preview-section preview-prep">
+      <h3>本日の仕込み</h3>
+      <p class="preview-prep-value">${escapeHtml(donePrep.map((item) => item.label).join("、"))}</p>
+    </section>`
     : "";
 
   el.innerHTML = `
@@ -920,6 +1011,7 @@ function renderPreviewUI() {
       <h3>テイクアウト用容器</h3>
       ${FORM.takeout.map((group) => takeoutPreviewHtml(group)).join("")}
     </section>
+    ${prepHtml}
     <section class="preview-section preview-timing">
       <h3>タイミー評価</h3>
       <p class="preview-timing-value">${escapeHtml(timingLabel)}</p>
@@ -1047,7 +1139,7 @@ function init() {
 
   document.getElementById("resetAllBtn")?.addEventListener("click", () => {
     const ok = window.confirm(
-      "すべての在庫・発注を0にし、備考とタイミー評価を空にします。よろしいですか？"
+      "すべての在庫・発注を0にし、仕込み・備考・タイミー評価を空にします。よろしいですか？"
     );
     if (!ok) return;
     resetAllToZero();
