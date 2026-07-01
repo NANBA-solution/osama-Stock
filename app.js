@@ -339,7 +339,7 @@ function applyDefaults() {
   if (!state.timing) state.timing = "";
   if (state.remark === undefined) state.remark = "";
   FORM.prep.forEach((item) => {
-    if (state[item.id] === undefined) state[item.id] = false;
+    state[item.id] = state[item.id] === true;
   });
 }
 
@@ -527,6 +527,13 @@ function archiveCurrentReport() {
   saveReportArchive(dateEl?.value || todayISO(), buildShareText());
 }
 
+async function afterShareReport(text) {
+  archiveCurrentReport();
+  if (typeof syncDailyReportToSheet === "function") {
+    await syncDailyReportToSheet(text);
+  }
+}
+
 function renderForm() {
   const root = document.getElementById("formRoot");
   root.innerHTML = "";
@@ -590,6 +597,10 @@ function renderForm() {
   root.appendChild(s3);
 
   const sMeat = section("お肉", "meat");
+  const meatHint = document.createElement("p");
+  meatHint.className = "step-hint";
+  meatHint.textContent = "±1ずつ｜0でリセット｜0.1は下のボタン";
+  sMeat.appendChild(meatHint);
   FORM.meat.forEach((item) => sMeat.appendChild(renderIngredient(item)));
   root.appendChild(sMeat);
 
@@ -665,13 +676,13 @@ function renderTakeoutGroup(group) {
 }
 
 function getDonePrepItems() {
-  return FORM.prep.filter((item) => state[item.id]);
+  return FORM.prep.filter((item) => state[item.id] === true);
 }
 
 function updatePrepUI(group) {
   group.querySelectorAll(".prep-tab").forEach((btn) => {
     const id = btn.dataset.prepId;
-    const done = !!state[id];
+    const done = state[id] === true;
     btn.classList.toggle("prep-tab--done", done);
     btn.setAttribute("aria-pressed", done ? "true" : "false");
   });
@@ -690,7 +701,7 @@ function refreshPrepRecommendUI() {
   if (!el) return;
   const items = getPrepRecommendations();
   if (items.length) {
-    el.textContent = `明日推奨：${items.join("、")}`;
+    el.textContent = `明日の仕込み推奨：${items.join("、")}`;
     el.hidden = false;
   } else {
     el.textContent = "";
@@ -762,16 +773,17 @@ function prepBlockShareLines() {
 }
 
 function getPrepRecommendations() {
-  const labels = FORM.ousama
+  const labelSet = new Set();
+  FORM.ousama
     .filter((f) => f.prepRecommend && num(f.id) < ROUX_PREP_THRESHOLD)
-    .map((f) => f.prepRecommend);
+    .forEach((f) => labelSet.add(f.prepRecommend));
 
   const lowSoupIngredient = FORM.soupIngredients.some(
     (f) => f.id !== "siSet" && num(f.id) <= SOUP_INGREDIENT_PREP_THRESHOLD
   );
-  if (lowSoupIngredient) labels.push("スープ野菜");
+  if (lowSoupIngredient) labelSet.add("スープ野菜");
 
-  return [...new Set(labels)];
+  return FORM.prep.map((item) => item.label).filter((label) => labelSet.has(label));
 }
 
 function updateTimingUI(group) {
@@ -1152,17 +1164,12 @@ function init() {
   renderForm();
 
   const previewDialog = document.getElementById("previewDialog");
-  const getText = () =>
-    document.getElementById("previewText").dataset.plain || buildShareText();
 
   document.getElementById("copyBtn").addEventListener("click", async () => {
     const text = buildShareText();
     try {
       await copyToClipboard(text);
-      archiveCurrentReport();
-      if (typeof syncDailyReportToSheet === "function") {
-        await syncDailyReportToSheet(text);
-      }
+      await afterShareReport(text);
       showToast(getSheetsWebhookUrl?.() ? "コピー＆シート送信しました" : "コピーしました！");
       if (navigator.vibrate) navigator.vibrate(30);
     } catch {
@@ -1172,10 +1179,7 @@ function init() {
 
   document.getElementById("lineShareBtn").addEventListener("click", async () => {
     const text = buildShareText();
-    archiveCurrentReport();
-    if (typeof syncDailyReportToSheet === "function") {
-      await syncDailyReportToSheet(text);
-    }
+    await afterShareReport(text);
     shareToLine(text);
     if (navigator.vibrate) navigator.vibrate(30);
   });
@@ -1189,17 +1193,21 @@ function init() {
   });
 
   document.getElementById("copyFromPreview").addEventListener("click", async () => {
+    const text = buildShareText();
     try {
-      await copyToClipboard(getText());
-      showToast();
+      await copyToClipboard(text);
+      await afterShareReport(text);
+      showToast(getSheetsWebhookUrl?.() ? "コピー＆シート送信しました" : "コピーしました！");
       closeDialog(previewDialog);
     } catch {
       alert("コピーに失敗しました");
     }
   });
 
-  document.getElementById("lineShareFromPreview").addEventListener("click", () => {
-    shareToLine(getText());
+  document.getElementById("lineShareFromPreview").addEventListener("click", async () => {
+    const text = buildShareText();
+    await afterShareReport(text);
+    shareToLine(text);
     closeDialog(previewDialog);
     if (navigator.vibrate) navigator.vibrate(30);
   });
