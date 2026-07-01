@@ -215,6 +215,7 @@ const FORM = {
     { id: "prepTorigaraClean", label: "鶏ガラ掃除" },
     { id: "prepTopSideCut", label: "トップサイドカット" },
     { id: "prepCabbageSlice", label: "キャベツスリ" },
+    { id: "prepKatsuTuke", label: "カツつけ" },
   ],
 };
 
