@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   <meta name="apple-mobile-web-app-title" content="在庫フォーム" />
   <title>王様のスプーン｜在庫フォーム</title>
-  <link rel="stylesheet" href="styles.css?v=20250628" />
+  <link rel="stylesheet" href="styles.css?v=20250701" />
 </head>
 <body>
   <div class="app">
@@ -119,60 +119,6 @@
       </section>
     </nav>
 
-    <section class="order-summary-panel" aria-label="発注集計">
-      <details class="order-summary-details">
-        <summary class="order-summary-heading">発注集計（月締め）</summary>
-        <div class="order-summary-body">
-          <p class="order-summary-lead">お肉・具材の<strong>発注数</strong>を日付ごとに記録し、月単位で合計します。データはアプリ内に保存され、CSV・バックアップで出力できます。</p>
-          <p id="orderStorageInfo" class="order-storage-info"></p>
-          <label class="order-summary-month-row">
-            <span>対象月</span>
-            <input type="month" id="orderSummaryMonth" />
-          </label>
-          <p id="orderSummaryStatus" class="order-summary-status"></p>
-          <div id="orderSummaryContent" class="order-summary-content"></div>
-          <div class="order-summary-actions">
-            <button type="button" id="orderSummaryRefresh" class="btn btn-secondary btn-summary">表示更新</button>
-            <button type="button" id="orderSummaryCopy" class="btn btn-primary btn-summary">集計をコピー</button>
-            <button type="button" id="orderExportCsv" class="btn btn-secondary btn-summary">CSV出力</button>
-            <button type="button" id="orderExportBackup" class="btn btn-secondary btn-summary">バックアップ</button>
-            <label class="btn btn-secondary btn-summary btn-import">
-              復元
-              <input type="file" id="orderImportBackup" accept="application/json,.json" hidden />
-            </label>
-            <button type="button" id="orderSummaryClose" class="btn btn-reset btn-summary">月締めする</button>
-          </div>
-
-          <details class="sheets-config">
-            <summary class="sheets-config-heading">スプレッドシート連携</summary>
-            <div class="sheets-config-body">
-              <p class="sheets-config-lead">全員の発注・レポートを1つのシートに集約します。コピー・LINE共有・月締め時に自動送信されます。</p>
-              <p id="sheetsConfigStatus" class="sheets-config-status"></p>
-              <label class="sheets-url-row">
-                <span>WebアプリURL</span>
-                <input type="url" id="sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" />
-              </label>
-              <div class="sheets-config-actions">
-                <button type="button" id="sheetsSaveUrl" class="btn btn-secondary btn-summary">URLを保存</button>
-                <button type="button" id="sheetsSendNow" class="btn btn-primary btn-summary">今の内容を送信</button>
-              </div>
-              <details class="sheets-setup-help">
-                <summary>Apps Scriptが開けないとき（Safari等）</summary>
-                <ol class="usage-steps">
-                  <li><strong>Chrome</strong>で <a href="https://script.google.com/home" target="_blank" rel="noopener noreferrer">script.google.com/home</a> を開く</li>
-                  <li><strong>新しいプロジェクト</strong>を作成</li>
-                  <li>「王様一集計」のURLからIDをコピー（<code>…/d/<strong>ID</strong>/edit</code>）</li>
-                  <li>GitHubの <code>google-apps-script.gs</code> を貼り付け、先頭の <code>SPREADSHEET_ID</code> にIDを入れて保存</li>
-                  <li><strong>デプロイ → ウェブアプリ</strong>（自分／全員）→ <code>/exec</code> のURLを下に貼る</li>
-                </ol>
-              </details>
-              <p class="sheets-config-note">スプレッドシート作成: <a href="https://sheets.google.com" target="_blank" rel="noopener noreferrer">sheets.google.com</a></p>
-            </div>
-          </details>
-        </div>
-      </details>
-    </section>
-
     <section class="reset-panel" aria-label="在庫・備考のリセット">
       <details class="reset-details">
         <summary class="reset-heading">在庫・備考をリセット</summary>
@@ -200,8 +146,6 @@
           <li><strong>0</strong> … 数量をリセット</li>
           <li><strong>0.1</strong> … 具材など、半分単位で増減（±0.1）</li>
           <li><strong>在庫／発注</strong> … お肉・具材は左が在庫、右が発注です</li>
-          <li><strong>発注集計（月締め）</strong> … 発注数を日ごとに記録し、CSV・バックアップで出力できます</li>
-          <li><strong>スプレッドシート連携</strong> … 全員のデータを店舗用シートに集約（URL設定は店長のみ）</li>
         </ul>
       </article>
 
@@ -218,6 +162,7 @@
           <li><strong>プレビュー</strong> … 送信前に内容を確認</li>
           <li><strong>コピー</strong> … テキストをコピー（LINEなどに貼り付け）</li>
           <li><strong>LINE共有</strong> … LINEを開いてそのまま送る</li>
+          <li>コピー・LINE共有時に、店舗のスプレッドシートへも自動で送信されます</li>
         </ul>
       </article>
 
@@ -276,10 +221,8 @@
     </div>
   </dialog>
 
-  <script src="app-data.js?v=20250628"></script>
-  <script src="app.js?v=20250628"></script>
-  <script src="order-log.js?v=20250628"></script>
-  <script src="sheets-sync.js?v=20250628"></script>
-  <script src="prep-log.js?v=20250628"></script>
+  <script src="app-data.js?v=20250701"></script>
+  <script src="app.js?v=20250701"></script>
+  <script src="sheets-sync.js?v=20250701"></script>
 </body>
 </html>

@@ -14,8 +14,6 @@ const SPREADSHEET_ID = "1HjGStBhSgALjn82BVCFnWDq86Vi6sn3ni-nimHLUJAw";
 
 const SHEET_ORDERS = "発注記録";
 const SHEET_REPORTS = "在庫レポート";
-const SHEET_MONTHLY = "月締め";
-const SHEET_PREP = "仕込み記録";
 
 function getSpreadsheet_() {
   if (SPREADSHEET_ID) {
@@ -57,25 +55,6 @@ function ensureSheets_(ss) {
     "端末ID",
     "レポート全文",
   ]);
-  getOrCreateSheet_(ss, SHEET_MONTHLY, [
-    "送信日時",
-    "対象月",
-    "端末ID",
-    "記録日数",
-    "区分",
-    "品目",
-    "月間合計",
-    "単位",
-    "集計テキスト",
-  ]);
-  getOrCreateSheet_(ss, SHEET_PREP, [
-    "送信日時",
-    "報告日",
-    "端末ID",
-    "鍋種別",
-    "仕込み回数",
-    "単位",
-  ]);
 }
 
 function writeDailyReport_(ss, payload) {
@@ -114,65 +93,6 @@ function writeDailyReport_(ss, payload) {
     ]);
     reportSheet.appendRow([sentAt, reportDate, deviceId, payload.reportText]);
   }
-
-  const prepSheet = getOrCreateSheet_(ss, SHEET_PREP, [
-    "送信日時",
-    "報告日",
-    "端末ID",
-    "鍋種別",
-    "仕込み回数",
-    "単位",
-  ]);
-  (payload.preps || []).forEach((item) => {
-    prepSheet.appendRow([
-      sentAt,
-      reportDate,
-      deviceId,
-      item.name || "",
-      item.qty || 0,
-      item.unit || "",
-    ]);
-  });
-}
-
-function writeMonthClose_(ss, payload) {
-  const sentAt = payload.sentAt ? new Date(payload.sentAt) : new Date();
-  const month = payload.month || "";
-  const deviceId = payload.deviceId || "";
-  const dayCount = payload.dayCount || 0;
-  const summaryText = payload.summaryText || "";
-
-  const sheet = getOrCreateSheet_(ss, SHEET_MONTHLY, [
-    "送信日時",
-    "対象月",
-    "端末ID",
-    "記録日数",
-    "区分",
-    "品目",
-    "月間合計",
-    "単位",
-    "集計テキスト",
-  ]);
-
-  const totals = payload.totals || [];
-  if (totals.length === 0) {
-    sheet.appendRow([sentAt, month, deviceId, dayCount, "", "", "", "", summaryText]);
-    return;
-  }
-
-  totals.forEach((item, index) => {
-    sheet.appendRow([
-      sentAt,
-      month,
-      deviceId,
-      dayCount,
-      item.groupLabel || "",
-      item.name || "",
-      item.qty || 0,
-      item.unit || "",
-      index === 0 ? summaryText : "",
-    ]);
-  });
 }
 
 function doPost(e) {
@@ -185,8 +105,6 @@ function doPost(e) {
 
     if (payload.type === "daily_report") {
       writeDailyReport_(ss, payload);
-    } else if (payload.type === "month_close") {
-      writeMonthClose_(ss, payload);
     } else {
       return jsonResponse({ ok: false, error: "unknown type" });
     }
