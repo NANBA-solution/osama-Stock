@@ -313,6 +313,7 @@ function reloadAppFromStore() {
   if (monthEl) monthEl.value = monthFromDateISO(dateEl?.value || todayISO());
   renderOrderSummaryUI();
   if (typeof updateSheetsConfigUI === "function") updateSheetsConfigUI();
+  if (typeof renderPrepSummaryUI === "function") renderPrepSummaryUI();
 }
 
 function initOrderSummary() {

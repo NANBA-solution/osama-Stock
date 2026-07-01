@@ -15,6 +15,7 @@ const SPREADSHEET_ID = "1HjGStBhSgALjn82BVCFnWDq86Vi6sn3ni-nimHLUJAw";
 const SHEET_ORDERS = "発注記録";
 const SHEET_REPORTS = "在庫レポート";
 const SHEET_MONTHLY = "月締め";
+const SHEET_PREP = "仕込み記録";
 
 function getSpreadsheet_() {
   if (SPREADSHEET_ID) {
@@ -67,6 +68,14 @@ function ensureSheets_(ss) {
     "単位",
     "集計テキスト",
   ]);
+  getOrCreateSheet_(ss, SHEET_PREP, [
+    "送信日時",
+    "報告日",
+    "端末ID",
+    "鍋種別",
+    "仕込み回数",
+    "単位",
+  ]);
 }
 
 function writeDailyReport_(ss, payload) {
@@ -105,6 +114,25 @@ function writeDailyReport_(ss, payload) {
     ]);
     reportSheet.appendRow([sentAt, reportDate, deviceId, payload.reportText]);
   }
+
+  const prepSheet = getOrCreateSheet_(ss, SHEET_PREP, [
+    "送信日時",
+    "報告日",
+    "端末ID",
+    "鍋種別",
+    "仕込み回数",
+    "単位",
+  ]);
+  (payload.preps || []).forEach((item) => {
+    prepSheet.appendRow([
+      sentAt,
+      reportDate,
+      deviceId,
+      item.name || "",
+      item.qty || 0,
+      item.unit || "",
+    ]);
+  });
 }
 
 function writeMonthClose_(ss, payload) {

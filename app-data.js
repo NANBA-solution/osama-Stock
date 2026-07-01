@@ -27,6 +27,7 @@ function emptyAppData() {
     form: { date: today, values: {} },
     orders: { active: {}, closed: {} },
     reports: {},
+    prepLog: { active: {} },
     sheets: { webhookUrl: "" },
     deviceId: "",
   };
@@ -47,6 +48,12 @@ function normalizeAppData(raw) {
       closed: raw.orders?.closed && typeof raw.orders.closed === "object" ? raw.orders.closed : {},
     },
     reports: raw.reports && typeof raw.reports === "object" ? raw.reports : {},
+    prepLog: {
+      active:
+        raw.prepLog?.active && typeof raw.prepLog.active === "object"
+          ? raw.prepLog.active
+          : {},
+    },
     sheets: {
       webhookUrl: raw.sheets?.webhookUrl || "",
     },
@@ -120,6 +127,17 @@ function getOrderLogFromStore() {
 
 function saveOrderLogToStore(orders) {
   getAppData().orders = orders;
+  persistAppData();
+}
+
+function getPrepLogFromStore() {
+  const log = getAppData().prepLog;
+  if (log && typeof log.active === "object") return log;
+  return { active: {} };
+}
+
+function savePrepLogToStore(prepLog) {
+  getAppData().prepLog = prepLog;
   persistAppData();
 }
 

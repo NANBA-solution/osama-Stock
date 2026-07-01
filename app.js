@@ -511,11 +511,17 @@ function buildStepperEl(id, { step = INTEGER_STEP, min = 0, max = 999 }) {
 
 
 function setValue(id, value, inputEl) {
+  const oldVal = num(id);
   const v = roundVal(value);
+  const delta = roundVal(v - oldVal);
   state[id] = v;
   if (inputEl) inputEl.value = formatQty(v);
   saveState();
   syncOrderSnapshotIfNeeded(id);
+  if (typeof recordPrepIncrease === "function" && delta > 0) {
+    const dateEl = document.getElementById("reportDate");
+    recordPrepIncrease(id, dateEl?.value || todayISO());
+  }
 }
 
 function archiveCurrentReport() {
@@ -538,12 +544,20 @@ function renderForm() {
   root.appendChild(sTane);
 
   const s1 = section("ルーストック", "ruu");
+  const prepHint = document.createElement("p");
+  prepHint.className = "prep-hint";
+  prepHint.textContent = "ストックが上がるたびに1回ずつカウント（0→1で1回、また上がれば2回…）";
+  s1.appendChild(prepHint);
   const g1 = document.createElement("div");
   g1.className = "row-grid cols-2";
   FORM.ousama.forEach((f) => {
     g1.appendChild(createStepper(f.id, { label: f.label, unit: f.unit }));
   });
   s1.appendChild(g1);
+  const prepSummary = document.createElement("div");
+  prepSummary.id = "prepSummary";
+  prepSummary.className = "prep-summary";
+  s1.appendChild(prepSummary);
   root.appendChild(s1);
 
   const sCut = section("カツストック", "katsu");
@@ -600,6 +614,8 @@ function renderForm() {
   const s4 = section("タイミー評価", "timing");
   s4.appendChild(renderTiming());
   root.appendChild(s4);
+
+  if (typeof renderPrepSummaryUI === "function") renderPrepSummaryUI();
 }
 
 function section(title, variant = "") {
@@ -791,6 +807,10 @@ function buildShareText() {
   FORM.ousama.forEach((f) => {
     lines.push(row(f.label, num(f.id), f.unit));
   });
+  if (typeof prepShareLines === "function") {
+    const prepLines = prepShareLines(dateEl?.value || todayISO());
+    if (prepLines.length) lines.push(...prepLines);
+  }
   lines.push("");
   lines.push("■ カツストック");
   FORM.cutStock.forEach((f) => {
@@ -1004,7 +1024,10 @@ function closeDialog(dlg) {
 function init() {
   const dateEl = document.getElementById("reportDate");
   if (!dateEl.value) dateEl.value = todayISO();
-  dateEl.addEventListener("change", saveState);
+  dateEl.addEventListener("change", () => {
+    saveState();
+    if (typeof renderPrepSummaryUI === "function") renderPrepSummaryUI();
+  });
 
   loadState();
   renderForm();

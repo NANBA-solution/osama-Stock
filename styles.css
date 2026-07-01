@@ -161,6 +161,73 @@ body {
   --section-bg: rgba(194, 65, 12, 0.1);
 }
 
+.prep-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.prep-summary {
+  margin-top: 0.65rem;
+}
+
+.prep-summary-empty {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.prep-summary-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.prep-summary-block {
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.prep-summary-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--section-color, #c2410c);
+  letter-spacing: -0.01em;
+}
+
+.prep-summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prep-summary-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  padding: 0.2rem 0;
+}
+
+.prep-summary-list li + li {
+  border-top: 1px dashed var(--border);
+}
+
+.prep-summary-list strong {
+  color: var(--text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .section--katsu {
   --section-color: #e11d48;
   --section-bg: rgba(225, 29, 72, 0.1);

@@ -31,6 +31,8 @@ async function postToSheets(payload) {
 async function syncDailyReportToSheet(reportText) {
   const dateEl = document.getElementById("reportDate");
   const reportDate = dateEl?.value || todayISO();
+  const preps =
+    typeof collectPrepForDate === "function" ? collectPrepForDate(reportDate) : [];
   return postToSheets({
     type: "daily_report",
     sentAt: new Date().toISOString(),
@@ -38,6 +40,7 @@ async function syncDailyReportToSheet(reportText) {
     deviceId: getDeviceId(),
     reportText: reportText || "",
     orders: collectCurrentOrders(),
+    preps,
   });
 }
 
