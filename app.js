@@ -212,6 +212,9 @@ const FORM = {
     { id: "prepKeema", label: "キーマ" },
     { id: "prepSoup", label: "スープ" },
     { id: "prepSoupVeg", label: "スープ野菜" },
+    { id: "prepTorigaraClean", label: "鶏ガラ掃除" },
+    { id: "prepTopSideCut", label: "トップサイドカット" },
+    { id: "prepCabbageSlice", label: "キャベツスリ" },
   ],
 };
 

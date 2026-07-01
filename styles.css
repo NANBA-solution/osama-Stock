@@ -579,26 +579,20 @@ body {
 }
 
 .prep-tab {
-  min-height: var(--tap);
+  min-height: var(--tap-sm);
   border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.85);
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease;
   letter-spacing: -0.02em;
-}
-
-.prep-tab:nth-child(4) {
-  grid-column: 1 / span 2;
-}
-
-.prep-tab:nth-child(5) {
-  grid-column: 3;
+  line-height: 1.25;
+  padding: 0.35rem 0.25rem;
 }
 
 .prep-tab--done {
