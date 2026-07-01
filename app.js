@@ -252,12 +252,19 @@ function qtyWithUnit(value, unit) {
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      state = saved.values || {};
+    if (typeof getAppData === "function") {
+      const data = getAppData();
+      state = data.form.values || {};
       const dateEl = document.getElementById("reportDate");
-      if (dateEl && saved.date) dateEl.value = saved.date;
+      if (dateEl && data.form.date) dateEl.value = data.form.date;
+    } else {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        state = saved.values || {};
+        const dateEl = document.getElementById("reportDate");
+        if (dateEl && saved.date) dateEl.value = saved.date;
+      }
     }
   } catch {
   }
@@ -267,20 +274,25 @@ function loadState() {
 function saveState() {
   const dateEl = document.getElementById("reportDate");
   const dateISO = dateEl?.value || todayISO();
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      date: dateISO,
-      values: state,
-    })
-  );
-  if (typeof recordOrderSnapshot === "function") {
-    recordOrderSnapshot(dateISO);
-    if (typeof renderOrderSummaryUI === "function") {
-      const monthEl = document.getElementById("orderSummaryMonth");
-      if (monthEl?.value === dateISO.slice(0, 7)) {
-        renderOrderSummaryUI();
-      }
+  if (typeof saveFormToStore === "function") {
+    saveFormToStore(dateISO, state);
+  } else {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ date: dateISO, values: state })
+    );
+  }
+}
+
+function syncOrderSnapshotIfNeeded(id) {
+  if (!id.endsWith("_order") || typeof recordOrderSnapshot !== "function") return;
+  const dateEl = document.getElementById("reportDate");
+  const dateISO = dateEl?.value || todayISO();
+  recordOrderSnapshot(dateISO);
+  if (typeof renderOrderSummaryUI === "function") {
+    const monthEl = document.getElementById("orderSummaryMonth");
+    if (monthEl?.value === dateISO.slice(0, 7)) {
+      renderOrderSummaryUI();
     }
   }
 }
@@ -362,6 +374,9 @@ function resetAllToZero() {
   state.timing = "";
   state.remark = "";
   saveState();
+  if (typeof recordCurrentOrderSnapshot === "function") {
+    recordCurrentOrderSnapshot();
+  }
   renderForm();
 }
 
@@ -500,6 +515,13 @@ function setValue(id, value, inputEl) {
   state[id] = v;
   if (inputEl) inputEl.value = formatQty(v);
   saveState();
+  syncOrderSnapshotIfNeeded(id);
+}
+
+function archiveCurrentReport() {
+  if (typeof saveReportArchive !== "function") return;
+  const dateEl = document.getElementById("reportDate");
+  saveReportArchive(dateEl?.value || todayISO(), buildShareText());
 }
 
 function renderForm() {
@@ -988,8 +1010,12 @@ function init() {
   renderForm();
 
   if (typeof initOrderSummary === "function") {
-    recordOrderSnapshot(document.getElementById("reportDate")?.value || todayISO());
+    recordCurrentOrderSnapshot();
     initOrderSummary();
+  }
+
+  if (typeof initSheetsSync === "function") {
+    initSheetsSync();
   }
 
   const previewDialog = document.getElementById("previewDialog");
@@ -1000,15 +1026,24 @@ function init() {
     const text = buildShareText();
     try {
       await copyToClipboard(text);
-      showToast();
+      archiveCurrentReport();
+      if (typeof syncDailyReportToSheet === "function") {
+        await syncDailyReportToSheet(text);
+      }
+      showToast(getSheetsWebhookUrl?.() ? "コピー＆シート送信しました" : "コピーしました！");
       if (navigator.vibrate) navigator.vibrate(30);
     } catch {
       alert("コピーに失敗しました。プレビューから手動でコピーしてください。");
     }
   });
 
-  document.getElementById("lineShareBtn").addEventListener("click", () => {
-    shareToLine(buildShareText());
+  document.getElementById("lineShareBtn").addEventListener("click", async () => {
+    const text = buildShareText();
+    archiveCurrentReport();
+    if (typeof syncDailyReportToSheet === "function") {
+      await syncDailyReportToSheet(text);
+    }
+    shareToLine(text);
     if (navigator.vibrate) navigator.vibrate(30);
   });
 

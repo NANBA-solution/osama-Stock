@@ -1,13 +1,37 @@
 /**
  * 発注数の日次記録と月締め集計
- *
- * データ構造（localStorage: osama-order-log-v1）
- * {
- *   active: { "YYYY-MM": { "YYYY-MM-DD": { itemId: qty, ... } } },
- *   closed: { "YYYY-MM": { closedAt, days, totals } }
- * }
+ * 保存先: app-data.js の orders（統合ストア）
  */
 const ORDER_LOG_KEY = "osama-order-log-v1";
+
+function emptyOrderLog() {
+  return { active: {}, closed: {} };
+}
+
+function loadOrderLog() {
+  if (typeof getOrderLogFromStore === "function") {
+    return getOrderLogFromStore();
+  }
+  try {
+    const raw = localStorage.getItem(ORDER_LOG_KEY);
+    if (!raw) return emptyOrderLog();
+    const parsed = JSON.parse(raw);
+    return {
+      active: parsed.active && typeof parsed.active === "object" ? parsed.active : {},
+      closed: parsed.closed && typeof parsed.closed === "object" ? parsed.closed : {},
+    };
+  } catch {
+    return emptyOrderLog();
+  }
+}
+
+function saveOrderLog(log) {
+  if (typeof saveOrderLogToStore === "function") {
+    saveOrderLogToStore(log);
+    return;
+  }
+  localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(log));
+}
 
 function getOrderCatalog() {
   const items = [];
@@ -30,28 +54,6 @@ function getOrderCatalog() {
     });
   });
   return items;
-}
-
-function emptyOrderLog() {
-  return { active: {}, closed: {} };
-}
-
-function loadOrderLog() {
-  try {
-    const raw = localStorage.getItem(ORDER_LOG_KEY);
-    if (!raw) return emptyOrderLog();
-    const parsed = JSON.parse(raw);
-    return {
-      active: parsed.active && typeof parsed.active === "object" ? parsed.active : {},
-      closed: parsed.closed && typeof parsed.closed === "object" ? parsed.closed : {},
-    };
-  } catch {
-    return emptyOrderLog();
-  }
-}
-
-function saveOrderLog(log) {
-  localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(log));
 }
 
 function snapshotOrdersFromState() {
@@ -88,6 +90,16 @@ function recordOrderSnapshot(dateISO) {
   if (!log.active[month]) log.active[month] = {};
   log.active[month][dateISO] = snap;
   saveOrderLog(log);
+}
+
+function recordCurrentOrderSnapshot() {
+  const dateEl = document.getElementById("reportDate");
+  recordOrderSnapshot(dateEl?.value || todayISO());
+  const monthEl = document.getElementById("orderSummaryMonth");
+  const dateISO = dateEl?.value || todayISO();
+  if (monthEl?.value === dateISO.slice(0, 7)) {
+    renderOrderSummaryUI();
+  }
 }
 
 function aggregateMonthDays(days) {
@@ -196,12 +208,21 @@ function buildOrderSummaryText(monthKey, data) {
   return lines.join("\n").trimEnd();
 }
 
+function renderOrderStorageInfo() {
+  const el = document.getElementById("orderStorageInfo");
+  if (!el || typeof getDataStorageSummary !== "function") return;
+  const summary = getDataStorageSummary();
+  el.textContent = `アプリ内保存：発注 ${summary.orderMonthCount}ヶ月分・レポート ${summary.reportDayCount}日分（最終更新 ${formatStorageUpdatedAt(summary.updatedAt)}）`;
+}
+
 function renderOrderSummaryUI() {
   const monthEl = document.getElementById("orderSummaryMonth");
   const statusEl = document.getElementById("orderSummaryStatus");
   const contentEl = document.getElementById("orderSummaryContent");
   const closeBtn = document.getElementById("orderSummaryClose");
   if (!monthEl || !statusEl || !contentEl) return;
+
+  renderOrderStorageInfo();
 
   const monthKey = monthEl.value || monthFromDateISO(todayISO());
   const data = getMonthData(monthKey);
@@ -216,6 +237,9 @@ function renderOrderSummaryUI() {
     closeBtn.disabled = isClosed || dayCount === 0;
     closeBtn.textContent = isClosed ? "締め済み" : "月締めする";
   }
+
+  const csvBtn = document.getElementById("orderExportCsv");
+  if (csvBtn) csvBtn.disabled = dayCount === 0;
 
   const groups = [
     { key: "meat", label: "お肉" },
@@ -251,7 +275,7 @@ function renderOrderSummaryUI() {
   });
 
   if (!html) {
-    html = `<p class="order-summary-empty">この月の発注記録はまだありません。<br>発注数を入力して保存すると、日付ごとに集計されます。</p>`;
+    html = `<p class="order-summary-empty">この月の発注記録はまだありません。<br>発注数を入力すると、日付ごとに自動記録されます。</p>`;
   }
 
   const sortedDays = Object.keys(data.days).sort();
@@ -278,6 +302,17 @@ function renderOrderSummaryUI() {
   }
 
   contentEl.innerHTML = html;
+}
+
+function reloadAppFromStore() {
+  if (typeof resetAppDataCache === "function") resetAppDataCache();
+  loadState();
+  renderForm();
+  const dateEl = document.getElementById("reportDate");
+  const monthEl = document.getElementById("orderSummaryMonth");
+  if (monthEl) monthEl.value = monthFromDateISO(dateEl?.value || todayISO());
+  renderOrderSummaryUI();
+  if (typeof updateSheetsConfigUI === "function") updateSheetsConfigUI();
 }
 
 function initOrderSummary() {
@@ -310,7 +345,46 @@ function initOrderSummary() {
     }
   });
 
-  document.getElementById("orderSummaryClose")?.addEventListener("click", () => {
+  document.getElementById("orderExportCsv")?.addEventListener("click", () => {
+    const monthKey = monthEl.value || monthFromDateISO(todayISO());
+    const data = getMonthData(monthKey);
+    if (Object.keys(data.days).length === 0) {
+      alert("この月には出力できる発注記録がありません。");
+      return;
+    }
+    downloadMonthCsv(monthKey);
+    showToast("CSVをダウンロードしました");
+  });
+
+  document.getElementById("orderExportBackup")?.addEventListener("click", () => {
+    downloadAppBackup();
+    showToast("バックアップを保存しました");
+  });
+
+  document.getElementById("orderImportBackup")?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const ok = window.confirm(
+      "バックアップを復元します。現在の入力・集計データは上書きされます。よろしいですか？"
+    );
+    if (!ok) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const result = importAppDataFromJson(parsed);
+      if (!result.ok) {
+        alert("バックアップファイルの形式が正しくありません。");
+        return;
+      }
+      reloadAppFromStore();
+      showToast("バックアップを復元しました");
+    } catch {
+      alert("バックアップの読み込みに失敗しました。");
+    }
+  });
+
+  document.getElementById("orderSummaryClose")?.addEventListener("click", async () => {
     const monthKey = monthEl.value || monthFromDateISO(todayISO());
     const data = getMonthData(monthKey);
     if (data.status === "closed") return;
@@ -319,13 +393,17 @@ function initOrderSummary() {
       return;
     }
     const ok = window.confirm(
-      `${formatMonthJP(monthKey)}の発注集計を月締めします。\n締め後も履歴から確認できます。よろしいですか？`
+      `${formatMonthJP(monthKey)}の発注集計を月締めします。\n締め後も履歴から確認・出力できます。よろしいですか？`
     );
     if (!ok) return;
     const result = closeOrderMonth(monthKey);
     if (!result.ok) {
       alert(result.reason === "already_closed" ? "すでに締め済みです。" : "締められませんでした。");
       return;
+    }
+    const closedData = getMonthData(monthKey);
+    if (typeof syncMonthCloseToSheet === "function") {
+      await syncMonthCloseToSheet(monthKey, closedData);
     }
     renderOrderSummaryUI();
     showToast(`${formatMonthJP(monthKey)}を締めました`);

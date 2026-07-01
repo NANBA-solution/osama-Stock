@@ -921,6 +921,16 @@ body {
   font-weight: 600;
 }
 
+.order-storage-info {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(2, 132, 199, 0.08);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
 .order-summary-month-row {
   display: flex;
   align-items: center;
@@ -1080,6 +1090,14 @@ body {
   grid-column: 1 / -1;
 }
 
+.btn-import {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: pointer;
+}
+
 .btn-summary {
   min-height: var(--tap-sm);
   font-size: 0.8125rem;
@@ -1088,6 +1106,108 @@ body {
 .btn-summary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* Sheets sync */
+.sheets-config {
+  margin-top: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.sheets-config > summary {
+  padding: 0.6rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+  background: var(--surface-muted);
+}
+
+.sheets-config > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sheets-config-body {
+  padding: 0.65rem;
+}
+
+.sheets-config-lead {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.sheets-config-status {
+  margin: 0 0 0.55rem;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.sheets-url-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sheets-url-row input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.sheets-config-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.sheets-config-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.sheets-config-note code {
+  font-size: 0.625rem;
+}
+
+.sheets-setup-help {
+  margin: 0 0 0.55rem;
+  border: 1px dashed var(--border-input);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.sheets-setup-help > summary {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b45309;
+  cursor: pointer;
+  list-style: none;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.sheets-setup-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sheets-setup-help .usage-steps {
+  margin: 0;
+  padding: 0.55rem 0.65rem 0.65rem 1.35rem;
 }
 
 /* Usage guide */
