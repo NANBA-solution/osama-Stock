@@ -15,11 +15,11 @@ const FORM = {
     { id: "keema", name: "キーマ", stockDefault: 2 },
   ],
   ousama: [
-    { id: "oonabe", label: "王様大鍋", unit: "", default: 0 },
+    { id: "oonabe", label: "王様大鍋", unit: "", default: 0, prepRecommend: "王様" },
     { id: "chunabe", label: "王様中鍋", unit: "", default: 0 },
-    { id: "osama", label: "オニオン鍋", unit: "", default: 0 },
-    { id: "soupNabe", label: "スープ鍋", unit: "", default: 0 },
-    { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0 },
+    { id: "osama", label: "オニオン鍋", unit: "", default: 0, prepRecommend: "オニオン" },
+    { id: "soupNabe", label: "スープ鍋", unit: "", default: 0, prepRecommend: "スープ" },
+    { id: "keemaNabe", label: "キーマ鍋", unit: "", default: 0, prepRecommend: "キーマ" },
   ],
   cutStock: [
     { id: "cutChicken", label: "チキン", unit: "", default: 0 },
@@ -220,6 +220,8 @@ const FORM = {
 
 const STORAGE_KEY = "osama-stock-form-v1";
 const DIVIDER = "━━━━━━━━━━━━━━━━";
+const ROUX_PREP_THRESHOLD = 0.5;
+const SOUP_INGREDIENT_PREP_THRESHOLD = 5;
 
 /** @type {Record<string, number|string>} */
 let state = {};
@@ -722,6 +724,25 @@ function prepShareLines() {
   return ["■ 本日の仕込み", `  ${done.map((item) => item.label).join("、")}`];
 }
 
+function getPrepRecommendations() {
+  const labels = FORM.ousama
+    .filter((f) => f.prepRecommend && num(f.id) < ROUX_PREP_THRESHOLD)
+    .map((f) => f.prepRecommend);
+
+  const lowSoupIngredient = FORM.soupIngredients.some(
+    (f) => f.id !== "siSet" && num(f.id) <= SOUP_INGREDIENT_PREP_THRESHOLD
+  );
+  if (lowSoupIngredient) labels.push("スープ野菜");
+
+  return [...new Set(labels)];
+}
+
+function prepRecommendLines() {
+  const items = getPrepRecommendations();
+  if (!items.length) return [];
+  return ["■ 明日の仕込み推奨", `  ${items.join("、")}`];
+}
+
 function updateTimingUI(group) {
   group.querySelectorAll(".timing-btn").forEach((btn) => {
     btn.classList.remove("selected-good", "selected-bad");
@@ -856,6 +877,10 @@ function buildShareText() {
   FORM.ousama.forEach((f) => {
     lines.push(row(f.label, num(f.id), f.unit));
   });
+  const rouxRecLines = prepRecommendLines();
+  if (rouxRecLines.length) {
+    lines.push(...rouxRecLines);
+  }
   lines.push("");
   lines.push("■ カツストック");
   FORM.cutStock.forEach((f) => {
@@ -948,6 +973,13 @@ function renderPreviewUI() {
       <p class="preview-prep-value">${escapeHtml(donePrep.map((item) => item.label).join("、"))}</p>
     </section>`
     : "";
+  const rouxRec = getPrepRecommendations();
+  const rouxRecHtml = rouxRec.length
+    ? `<section class="preview-section preview-roux-rec">
+      <h3>明日の仕込み推奨</h3>
+      <p class="preview-prep-value preview-roux-rec-value">${escapeHtml(rouxRec.join("、"))}</p>
+    </section>`
+    : "";
 
   el.innerHTML = `
     <div class="preview-head">
@@ -962,6 +994,7 @@ function renderPreviewUI() {
       <h3>ルーストック</h3>
       ${FORM.ousama.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
     </section>
+    ${rouxRecHtml}
     <section class="preview-section">
       <h3>カツストック</h3>
       ${FORM.cutStock.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
