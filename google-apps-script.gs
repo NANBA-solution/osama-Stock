@@ -120,3 +120,19 @@ function doPost(e) {
 function doGet() {
   return ContentService.createTextOutput("osama-stock sheet receiver ok");
 }
+
+/**
+ * テストデータ削除用（Apps Scriptエディタで1回だけ実行）
+ * 1. script.google.com でこのプロジェクトを開く
+ * 2. 関数 clearAllTestData を選んで「実行」
+ * 3. 発注記録・在庫レポート（および古い月締め・仕込み記録があれば）の2行目以降を削除
+ */
+function clearAllTestData() {
+  const ss = getSpreadsheet_();
+  ["発注記録", "在庫レポート", "月締め", "仕込み記録"].forEach((name) => {
+    const sheet = ss.getSheetByName(name);
+    if (!sheet) return;
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+  });
+}
