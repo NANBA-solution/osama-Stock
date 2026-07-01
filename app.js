@@ -266,13 +266,23 @@ function loadState() {
 
 function saveState() {
   const dateEl = document.getElementById("reportDate");
+  const dateISO = dateEl?.value || todayISO();
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
-      date: dateEl?.value || todayISO(),
+      date: dateISO,
       values: state,
     })
   );
+  if (typeof recordOrderSnapshot === "function") {
+    recordOrderSnapshot(dateISO);
+    if (typeof renderOrderSummaryUI === "function") {
+      const monthEl = document.getElementById("orderSummaryMonth");
+      if (monthEl?.value === dateISO.slice(0, 7)) {
+        renderOrderSummaryUI();
+      }
+    }
+  }
 }
 
 function applyDefaults() {
@@ -976,6 +986,11 @@ function init() {
 
   loadState();
   renderForm();
+
+  if (typeof initOrderSummary === "function") {
+    recordOrderSnapshot(document.getElementById("reportDate")?.value || todayISO());
+    initOrderSummary();
+  }
 
   const previewDialog = document.getElementById("previewDialog");
   const getText = () =>
