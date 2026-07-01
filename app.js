@@ -518,6 +518,7 @@ function setValue(id, value, inputEl) {
   state[id] = v;
   if (inputEl) inputEl.value = formatQty(v);
   saveState();
+  if (isPrepRecommendSourceId(id)) refreshPrepRecommendUI();
 }
 
 function archiveCurrentReport() {
@@ -684,6 +685,24 @@ function updatePrepStatus(el) {
     : "タップして仕込みを記録";
 }
 
+function refreshPrepRecommendUI() {
+  const el = document.getElementById("prepRecommend");
+  if (!el) return;
+  const items = getPrepRecommendations();
+  if (items.length) {
+    el.textContent = `明日推奨：${items.join("、")}`;
+    el.hidden = false;
+  } else {
+    el.textContent = "";
+    el.hidden = true;
+  }
+}
+
+function isPrepRecommendSourceId(id) {
+  if (FORM.ousama.some((f) => f.id === id)) return true;
+  return FORM.soupIngredients.some((f) => f.id === id);
+}
+
 function renderPrep() {
   const wrap = document.createElement("div");
   wrap.className = "prep-block";
@@ -714,15 +733,32 @@ function renderPrep() {
 
   wrap.appendChild(g);
   wrap.appendChild(status);
+
+  const recommend = document.createElement("p");
+  recommend.id = "prepRecommend";
+  recommend.className = "prep-recommend";
+  recommend.hidden = true;
+  wrap.appendChild(recommend);
+
   updatePrepUI(g);
   updatePrepStatus(status);
+  refreshPrepRecommendUI();
   return wrap;
 }
 
-function prepShareLines() {
+function prepBlockShareLines() {
   const done = getDonePrepItems();
-  if (!done.length) return [];
-  return ["■ 本日の仕込み", `  ${done.map((item) => item.label).join("、")}`];
+  const recommend = getPrepRecommendations();
+  if (!done.length && !recommend.length) return [];
+
+  const lines = [];
+  if (done.length) {
+    lines.push("■ 本日の仕込み", `  ${done.map((item) => item.label).join("、")}`);
+  }
+  if (recommend.length) {
+    lines.push("■ 明日の仕込み推奨", `  ${recommend.join("、")}`);
+  }
+  return lines;
 }
 
 function getPrepRecommendations() {
@@ -736,12 +772,6 @@ function getPrepRecommendations() {
   if (lowSoupIngredient) labels.push("スープ野菜");
 
   return [...new Set(labels)];
-}
-
-function prepRecommendLines() {
-  const items = getPrepRecommendations();
-  if (!items.length) return [];
-  return ["■ 明日の仕込み推奨", `  ${items.join("、")}`];
 }
 
 function updateTimingUI(group) {
@@ -878,10 +908,6 @@ function buildShareText() {
   FORM.ousama.forEach((f) => {
     lines.push(row(f.label, num(f.id), f.unit));
   });
-  const rouxRecLines = prepRecommendLines();
-  if (rouxRecLines.length) {
-    lines.push(...rouxRecLines);
-  }
   lines.push("");
   lines.push("■ カツストック");
   FORM.cutStock.forEach((f) => {
@@ -925,7 +951,7 @@ function buildShareText() {
     lines.push(...takeoutShareLines(group));
   });
   lines.push("");
-  const prepLines = prepShareLines();
+  const prepLines = prepBlockShareLines();
   if (prepLines.length) {
     lines.push(...prepLines);
     lines.push("");
@@ -968,19 +994,24 @@ function renderPreviewUI() {
     ? `<p class="preview-remark"><span class="preview-remark-label">備考</span>${escapeHtml(remark).replace(/\n/g, "<br>")}</p>`
     : "";
   const donePrep = getDonePrepItems();
-  const prepHtml = donePrep.length
-    ? `<section class="preview-section preview-prep">
-      <h3>本日の仕込み</h3>
-      <p class="preview-prep-value">${escapeHtml(donePrep.map((item) => item.label).join("、"))}</p>
-    </section>`
-    : "";
   const rouxRec = getPrepRecommendations();
-  const rouxRecHtml = rouxRec.length
-    ? `<section class="preview-section preview-roux-rec">
-      <h3>明日の仕込み推奨</h3>
-      <p class="preview-prep-value preview-roux-rec-value">${escapeHtml(rouxRec.join("、"))}</p>
+  const prepHtml =
+    donePrep.length || rouxRec.length
+      ? `<section class="preview-section preview-prep">
+      ${
+        donePrep.length
+          ? `<h3>本日の仕込み</h3>
+      <p class="preview-prep-value">${escapeHtml(donePrep.map((item) => item.label).join("、"))}</p>`
+          : ""
+      }
+      ${
+        rouxRec.length
+          ? `<h3 class="${donePrep.length ? "preview-prep-subhead" : ""}">明日の仕込み推奨</h3>
+      <p class="preview-prep-value preview-roux-rec-value">${escapeHtml(rouxRec.join("、"))}</p>`
+          : ""
+      }
     </section>`
-    : "";
+      : "";
 
   el.innerHTML = `
     <div class="preview-head">
@@ -995,7 +1026,6 @@ function renderPreviewUI() {
       <h3>ルーストック</h3>
       ${FORM.ousama.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
     </section>
-    ${rouxRecHtml}
     <section class="preview-section">
       <h3>カツストック</h3>
       ${FORM.cutStock.map((f) => previewRow(f.label, num(f.id), f.unit)).join("")}
