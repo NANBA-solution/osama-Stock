@@ -216,6 +216,8 @@ const FORM = {
     { id: "prepTopSideCut", label: "トップサイドカット" },
     { id: "prepCabbageSlice", label: "キャベツスリ" },
     { id: "prepKatsuTuke", label: "カツつけ" },
+    { id: "prepShitajunbi", label: "下準備" },
+    { id: "prepNone", label: "仕込みなし" },
   ],
 };
 
@@ -223,6 +225,7 @@ const STORAGE_KEY = "osama-stock-form-v1";
 const DIVIDER = "━━━━━━━━━━━━━━━━";
 const ROUX_PREP_THRESHOLD = 0.5;
 const SOUP_INGREDIENT_PREP_THRESHOLD = 5;
+const PREP_NONE_ID = "prepNone";
 
 /** @type {Record<string, number|string>} */
 let state = {};
@@ -622,13 +625,15 @@ function renderForm() {
   sTakeout.appendChild(gTakeout);
   root.appendChild(sTakeout);
 
-  const sPrep = section("仕込み", "prep");
+  const sPrep = section("本日の仕込み", "prep");
   sPrep.appendChild(renderPrep());
   root.appendChild(sPrep);
 
   const s4 = section("タイミー評価", "timing");
   s4.appendChild(renderTiming());
   root.appendChild(s4);
+
+  refreshPrepValidationUI();
 }
 
 function section(title, variant = "") {
@@ -690,6 +695,51 @@ function getDonePrepItems() {
   return FORM.prep.filter((item) => state[item.id] === true);
 }
 
+function isPrepRecorded() {
+  if (state[PREP_NONE_ID] === true) return true;
+  return FORM.prep.some((item) => item.id !== PREP_NONE_ID && state[item.id] === true);
+}
+
+function togglePrepItem(itemId) {
+  if (itemId === PREP_NONE_ID) {
+    if (state[PREP_NONE_ID]) {
+      state[PREP_NONE_ID] = false;
+      return;
+    }
+    FORM.prep.forEach((item) => {
+      state[item.id] = item.id === PREP_NONE_ID;
+    });
+    return;
+  }
+
+  if (state[itemId]) {
+    state[itemId] = false;
+    return;
+  }
+
+  state[PREP_NONE_ID] = false;
+  state[itemId] = true;
+}
+
+function refreshPrepValidationUI() {
+  const valid = isPrepRecorded();
+  const block = document.getElementById("prepBlock");
+  block?.classList.toggle("prep-block--incomplete", !valid);
+  ["copyBtn", "lineShareBtn", "previewBtn"].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = !valid;
+  });
+}
+
+function guardPrepBeforeSend() {
+  if (isPrepRecorded()) return true;
+  alert(
+    "送信前に「本日の仕込み」を選んでください。\n仕込みがない日は「仕込みなし」、ある日は該当のタブをタップしてください。"
+  );
+  document.getElementById("prepBlock")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  return false;
+}
+
 function updatePrepUI(group) {
   group.querySelectorAll(".prep-tab").forEach((btn) => {
     const id = btn.dataset.prepId;
@@ -703,8 +753,9 @@ function updatePrepStatus(el) {
   if (!el) return;
   const done = getDonePrepItems();
   el.textContent = done.length
-    ? `本日：${done.map((item) => item.label).join("、")}`
-    : "タップして仕込みを記録";
+    ? done.map((item) => item.label).join("、")
+    : "仕込みなし／該当タブをタップ（送信前に必須）";
+  refreshPrepValidationUI();
 }
 
 function refreshPrepRecommendUI() {
@@ -728,11 +779,12 @@ function isPrepRecommendSourceId(id) {
 function renderPrep() {
   const wrap = document.createElement("div");
   wrap.className = "prep-block";
+  wrap.id = "prepBlock";
 
   const g = document.createElement("div");
   g.className = "prep-tabs";
   g.setAttribute("role", "group");
-  g.setAttribute("aria-label", "仕込み種別");
+  g.setAttribute("aria-label", "本日の仕込み");
 
   const status = document.createElement("p");
   status.className = "prep-status";
@@ -745,7 +797,7 @@ function renderPrep() {
     btn.textContent = item.label;
     btn.setAttribute("aria-pressed", "false");
     btn.addEventListener("click", () => {
-      state[item.id] = !state[item.id];
+      togglePrepItem(item.id);
       saveState();
       updatePrepUI(g);
       updatePrepStatus(status);
@@ -769,6 +821,7 @@ function renderPrep() {
 }
 
 function prepBlockShareLines() {
+  if (!isPrepRecorded()) return [];
   const done = getDonePrepItems();
   const recommend = getPrepRecommendations();
   if (!done.length && !recommend.length) return [];
@@ -1180,6 +1233,7 @@ function init() {
   const previewDialog = document.getElementById("previewDialog");
 
   document.getElementById("copyBtn").addEventListener("click", async () => {
+    if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
     try {
       await copyToClipboard(text);
@@ -1192,6 +1246,7 @@ function init() {
   });
 
   document.getElementById("lineShareBtn").addEventListener("click", async () => {
+    if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
     await afterShareReport(text);
     shareToLine(text);
@@ -1199,6 +1254,7 @@ function init() {
   });
 
   document.getElementById("previewBtn").addEventListener("click", () => {
+    if (!guardPrepBeforeSend()) return;
     openDialog(previewDialog);
   });
 
@@ -1207,6 +1263,7 @@ function init() {
   });
 
   document.getElementById("copyFromPreview").addEventListener("click", async () => {
+    if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
     try {
       await copyToClipboard(text);
@@ -1219,6 +1276,7 @@ function init() {
   });
 
   document.getElementById("lineShareFromPreview").addEventListener("click", async () => {
+    if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
     await afterShareReport(text);
     shareToLine(text);

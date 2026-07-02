@@ -613,6 +613,18 @@ body {
   text-align: center;
 }
 
+.prep-block--incomplete .prep-status {
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(185, 28, 28, 0.22);
+  color: var(--bad);
+  font-weight: 600;
+}
+
+.footer .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .prep-recommend {
   margin: 0;
   padding: 0.45rem 0.55rem;
