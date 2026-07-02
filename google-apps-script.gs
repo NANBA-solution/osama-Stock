@@ -57,6 +57,28 @@ function ensureSheets_(ss) {
   ]);
 }
 
+function shortContentHash_(text) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.MD5,
+    String(text || "").slice(0, 4000),
+    Utilities.Charset.UTF_8
+  );
+  return Utilities.base64EncodeWebSafe(bytes).slice(0, 16);
+}
+
+function isDuplicateDailyReport_(payload) {
+  const cache = CacheService.getScriptCache();
+  const requestId = String(payload.requestId || "");
+  if (requestId && cache.get(`req:${requestId}`)) return true;
+
+  const dedupKey = `dr:${payload.deviceId || ""}:${payload.reportDate || ""}:${shortContentHash_(payload.reportText)}`;
+  if (cache.get(dedupKey)) return true;
+
+  if (requestId) cache.put(`req:${requestId}`, "1", 120);
+  cache.put(dedupKey, "1", 60);
+  return false;
+}
+
 function writeDailyReport_(ss, payload) {
   const sentAt = payload.sentAt ? new Date(payload.sentAt) : new Date();
   const reportDate = payload.reportDate || "";
@@ -104,6 +126,9 @@ function doPost(e) {
     ensureSheets_(ss);
 
     if (payload.type === "daily_report") {
+      if (isDuplicateDailyReport_(payload)) {
+        return jsonResponse({ ok: true, duplicate: true });
+      }
       writeDailyReport_(ss, payload);
     } else {
       return jsonResponse({ ok: false, error: "unknown type" });

@@ -528,10 +528,21 @@ function archiveCurrentReport() {
 }
 
 async function afterShareReport(text) {
-  archiveCurrentReport();
-  if (typeof syncDailyReportToSheet === "function") {
-    await syncDailyReportToSheet(text);
-  }
+  if (afterShareReport._pending) return afterShareReport._pending;
+  afterShareReport._pending = (async () => {
+    try {
+      if (typeof saveReportArchive === "function") {
+        const dateEl = document.getElementById("reportDate");
+        saveReportArchive(dateEl?.value || todayISO(), text);
+      }
+      if (typeof syncDailyReportToSheet === "function") {
+        await syncDailyReportToSheet(text);
+      }
+    } finally {
+      afterShareReport._pending = null;
+    }
+  })();
+  return afterShareReport._pending;
 }
 
 function renderForm() {
@@ -1156,6 +1167,9 @@ function closeDialog(dlg) {
 }
 
 function init() {
+  if (init._done) return;
+  init._done = true;
+
   const dateEl = document.getElementById("reportDate");
   if (!dateEl.value) dateEl.value = todayISO();
   dateEl.addEventListener("change", saveState);
