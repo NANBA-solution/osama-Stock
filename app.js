@@ -840,7 +840,7 @@ function prepBlockShareLines() {
 function getPrepRecommendations() {
   const labelSet = new Set();
   FORM.ousama
-    .filter((f) => f.prepRecommend && num(f.id) < ROUX_PREP_THRESHOLD)
+    .filter((f) => f.prepRecommend && num(f.id) <= ROUX_PREP_THRESHOLD)
     .forEach((f) => labelSet.add(f.prepRecommend));
 
   const lowSoupIngredient = FORM.soupIngredients.some(
