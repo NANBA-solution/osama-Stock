@@ -49,18 +49,55 @@ function collectCurrentOrders() {
 
 async function postToSheets(payload) {
   const url = getSheetsWebhookUrl();
-  if (!url) return { ok: false, skipped: true };
+  if (!url) return { ok: false, skipped: true, reason: "no_url" };
+
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
-      mode: "no-cors",
+      mode: "cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
       redirect: "follow",
     });
+
+    const text = await res.text();
+    let data = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* 非JSON応答 */
+    }
+
+    if (data && data.ok === false) {
+      return {
+        ok: false,
+        error: data.error || "server_error",
+        detail: data.detail || "",
+      };
+    }
+
+    if (data && data.ok === true) {
+      return { ok: true, duplicate: !!data.duplicate };
+    }
+
+    if (!res.ok) {
+      return { ok: false, error: `http_${res.status}` };
+    }
+
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: String(err?.message || err) };
+    try {
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+        redirect: "follow",
+      });
+      return { ok: true, unconfirmed: true };
+    } catch (fallbackErr) {
+      return { ok: false, error: String(fallbackErr?.message || fallbackErr) };
+    }
   }
 }
 
@@ -92,4 +129,15 @@ async function syncDailyReportToSheet(reportText) {
     lastSheetPostAt = now;
   }
   return result;
+}
+
+function sheetSyncResultMessage(result) {
+  if (!result || result.skipped) return null;
+  if (result.ok && result.duplicate) return "コピーしました（シートは送信済み）";
+  if (result.ok && result.unconfirmed) return "コピーしました（シート送信は未確認）";
+  if (result.ok) return "コピー＆シート送信しました";
+  if (result.error === "spreadsheet_open_failed") {
+    return "シート送信失敗：スプレッドシートにアクセスできません";
+  }
+  return "シート送信に失敗しました";
 }

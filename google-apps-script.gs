@@ -74,9 +74,15 @@ function isDuplicateDailyReport_(payload) {
   const dedupKey = `dr:${payload.deviceId || ""}:${payload.reportDate || ""}:${shortContentHash_(payload.reportText)}`;
   if (cache.get(dedupKey)) return true;
 
+  return false;
+}
+
+function markDailyReportSent_(payload) {
+  const cache = CacheService.getScriptCache();
+  const requestId = String(payload.requestId || "");
+  const dedupKey = `dr:${payload.deviceId || ""}:${payload.reportDate || ""}:${shortContentHash_(payload.reportText)}`;
   if (requestId) cache.put(`req:${requestId}`, "1", 120);
   cache.put(dedupKey, "1", 60);
-  return false;
 }
 
 function writeDailyReport_(ss, payload) {
@@ -121,18 +127,34 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
-    const payload = JSON.parse(e.postData.contents);
-    const ss = getSpreadsheet_();
-    ensureSheets_(ss);
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonResponse({ ok: false, error: "empty body" });
+    }
 
-    if (payload.type === "daily_report") {
-      if (isDuplicateDailyReport_(payload)) {
-        return jsonResponse({ ok: true, duplicate: true });
-      }
-      writeDailyReport_(ss, payload);
-    } else {
+    const payload = JSON.parse(e.postData.contents);
+
+    if (payload.type !== "daily_report") {
       return jsonResponse({ ok: false, error: "unknown type" });
     }
+
+    if (isDuplicateDailyReport_(payload)) {
+      return jsonResponse({ ok: true, duplicate: true });
+    }
+
+    let ss;
+    try {
+      ss = getSpreadsheet_();
+    } catch (err) {
+      return jsonResponse({
+        ok: false,
+        error: "spreadsheet_open_failed",
+        detail: String(err),
+      });
+    }
+
+    ensureSheets_(ss);
+    writeDailyReport_(ss, payload);
+    markDailyReportSent_(payload);
 
     return jsonResponse({ ok: true });
   } catch (err) {

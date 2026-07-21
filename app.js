@@ -539,8 +539,9 @@ async function afterShareReport(text) {
         saveReportArchive(dateEl?.value || todayISO(), text);
       }
       if (typeof syncDailyReportToSheet === "function") {
-        await syncDailyReportToSheet(text);
+        return await syncDailyReportToSheet(text);
       }
+      return null;
     } finally {
       afterShareReport._pending = null;
     }
@@ -1237,8 +1238,17 @@ function init() {
     const text = buildShareText();
     try {
       await copyToClipboard(text);
-      await afterShareReport(text);
-      showToast(getSheetsWebhookUrl?.() ? "コピー＆シート送信しました" : "コピーしました！");
+      const syncResult = await afterShareReport(text);
+      const syncMsg =
+        typeof sheetSyncResultMessage === "function"
+          ? sheetSyncResultMessage(syncResult)
+          : null;
+      showToast(syncMsg || "コピーしました！");
+      if (syncResult && !syncResult.ok && !syncResult.skipped) {
+        alert(
+          "スプレッドシートへの送信に失敗しました。\nApps Scriptを再デプロイし、スプレッドシート「王様一集計」へのアクセス権限を確認してください。"
+        );
+      }
       if (navigator.vibrate) navigator.vibrate(30);
     } catch {
       alert("コピーに失敗しました。プレビューから手動でコピーしてください。");
@@ -1248,7 +1258,12 @@ function init() {
   document.getElementById("lineShareBtn").addEventListener("click", async () => {
     if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
-    await afterShareReport(text);
+    const syncResult = await afterShareReport(text);
+    if (syncResult && !syncResult.ok && !syncResult.skipped) {
+      alert(
+        "スプレッドシートへの送信に失敗しました。\nApps Scriptを再デプロイし、スプレッドシート「王様一集計」へのアクセス権限を確認してください。"
+      );
+    }
     shareToLine(text);
     if (navigator.vibrate) navigator.vibrate(30);
   });
@@ -1267,8 +1282,17 @@ function init() {
     const text = buildShareText();
     try {
       await copyToClipboard(text);
-      await afterShareReport(text);
-      showToast(getSheetsWebhookUrl?.() ? "コピー＆シート送信しました" : "コピーしました！");
+      const syncResult = await afterShareReport(text);
+      const syncMsg =
+        typeof sheetSyncResultMessage === "function"
+          ? sheetSyncResultMessage(syncResult)
+          : null;
+      showToast(syncMsg || "コピーしました！");
+      if (syncResult && !syncResult.ok && !syncResult.skipped) {
+        alert(
+          "スプレッドシートへの送信に失敗しました。\nApps Scriptを再デプロイし、スプレッドシート「王様一集計」へのアクセス権限を確認してください。"
+        );
+      }
       closeDialog(previewDialog);
     } catch {
       alert("コピーに失敗しました");
@@ -1278,7 +1302,12 @@ function init() {
   document.getElementById("lineShareFromPreview").addEventListener("click", async () => {
     if (!guardPrepBeforeSend()) return;
     const text = buildShareText();
-    await afterShareReport(text);
+    const syncResult = await afterShareReport(text);
+    if (syncResult && !syncResult.ok && !syncResult.skipped) {
+      alert(
+        "スプレッドシートへの送信に失敗しました。\nApps Scriptを再デプロイし、スプレッドシート「王様一集計」へのアクセス権限を確認してください。"
+      );
+    }
     shareToLine(text);
     closeDialog(previewDialog);
     if (navigator.vibrate) navigator.vibrate(30);
