@@ -829,12 +829,10 @@ function prepBlockShareLines() {
 
   const lines = [];
   if (done.length) {
-    lines.push("■ 本日の仕込み");
-    lines.push(`  ・${done.map((item) => item.label).join("、")}`);
+    lines.push("■ 本日の仕込み", `  ${done.map((item) => item.label).join("、")}`);
   }
   if (recommend.length) {
-    lines.push("■ 明日の仕込み推奨");
-    lines.push(`  ・${recommend.join("、")}`);
+    lines.push("■ 明日の仕込み推奨", `  ${recommend.join("、")}`);
   }
   return lines;
 }
@@ -914,36 +912,23 @@ function renderTiming() {
   return wrap;
 }
 
-function shareDot(label, value) {
-  return `  ・${label}：${value}`;
-}
-
-function shareItemHead(name) {
-  return `  ・${name}`;
-}
-
-function shareSubLine(text) {
-  return `     ${text}`;
-}
-
-function shareStockOrderSub(stock, order, stockUnit, orderUnit) {
-  return shareSubLine(
-    `在庫 ${qtyWithUnit(stock, stockUnit)} ／ 発注 ${qtyWithUnit(order, orderUnit)}`
-  );
+function row(label, value, unit = "") {
+  const pad = "　".repeat(Math.max(0, 4 - [...label].length));
+  return `  ${label}${pad}：${qtyWithUnit(value, unit)}`;
 }
 
 function taneShareLines(item) {
   const stock = num(`${item.id}_stock`);
+  const lines = [`【${item.name}】`];
   if (item.hasPlus) {
     const plus = num(`${item.id}_plus`);
-    return [
-      shareDot(
-        item.name,
-        `在庫 ${formatQty(stock)} ＋ ${formatQty(plus)}（${item.plusNote}）`
-      ),
-    ];
+    lines.push(
+      `  在庫　${formatQty(stock)}　＋　${formatQty(plus)}（${item.plusNote}）`
+    );
+  } else {
+    lines.push(`  在庫　${formatQty(stock)}`);
   }
-  return [shareDot(item.name, formatQty(stock))];
+  return lines;
 }
 
 function tanePreviewHtml(item) {
@@ -959,22 +944,21 @@ function tanePreviewHtml(item) {
 }
 
 function takeoutShareLines(group) {
+  const lines = [`【${group.name}】`];
   if (group.type === "pair") {
-    return [
-      shareItemHead(group.name),
-      shareSubLine(
-        `器 ${formatQty(num(group.uta.id))} ／ 蓋 ${formatQty(num(group.futa.id))}`
-      ),
-    ];
+    lines.push(`  器：在庫　${formatQty(num(group.uta.id))}`);
+    lines.push(`  蓋：在庫　${formatQty(num(group.futa.id))}`);
+  } else {
+    lines.push(`  在庫：${formatQty(num(group.id))}`);
   }
-  return [shareDot(group.name, formatQty(num(group.id)))];
+  return lines;
 }
 
 function takeoutPreviewHtml(group) {
   const body =
     group.type === "pair"
-      ? `器 ${escapeHtml(formatQty(num(group.uta.id)))} ／ 蓋 ${escapeHtml(formatQty(num(group.futa.id)))}`
-      : escapeHtml(formatQty(num(group.id)));
+      ? `器：在庫 ${escapeHtml(formatQty(num(group.uta.id)))}<br>蓋：在庫 ${escapeHtml(formatQty(num(group.futa.id)))}`
+      : `在庫：${escapeHtml(formatQty(num(group.id)))}`;
   return `
         <div class="preview-ingredient">
           <p class="preview-item-title">${escapeHtml(group.name)}</p>
@@ -993,46 +977,54 @@ function buildShareText() {
   lines.push("");
   lines.push("■ タネストック");
   FORM.tane.forEach((item) => {
+    lines.push("");
     lines.push(...taneShareLines(item));
   });
   lines.push("");
   lines.push("■ ルーストック");
   FORM.ousama.forEach((f) => {
-    lines.push(shareDot(f.label, qtyWithUnit(num(f.id), f.unit)));
+    lines.push(row(f.label, num(f.id), f.unit));
   });
   lines.push("");
   lines.push("■ カツストック");
   FORM.cutStock.forEach((f) => {
-    lines.push(shareDot(f.label, qtyWithUnit(num(f.id), f.unit)));
+    lines.push(row(f.label, num(f.id), f.unit));
   });
   lines.push("");
   lines.push("■ スープ");
-  lines.push(shareDot(FORM.soupSales.label, formatQty(num("soupSales"))));
+  lines.push(row(FORM.soupSales.label, num("soupSales")));
   lines.push("  ─ 具材 ─");
   FORM.soupIngredients.forEach((f) => {
-    lines.push(shareDot(f.label, formatQty(num(f.id))));
+    lines.push(row(f.label, num(f.id)));
   });
   lines.push("");
   lines.push("■ 具材・在庫");
   FORM.ingredients.forEach((ing) => {
     const stock = num(`${ing.id}_stock`);
     const order = num(`${ing.id}_order`);
-    lines.push(shareItemHead(ing.name));
-    lines.push(shareStockOrderSub(stock, order, ing.stockUnit, ing.orderUnit));
-    if (ing.constant) lines.push(shareSubLine(`※ ${ing.constant}`));
+    lines.push("");
+    lines.push(`【${ing.name}】`);
+    if (ing.constant) lines.push(`  ※ ${ing.constant}`);
+    lines.push(
+      `  在庫　${qtyWithUnit(stock, ing.stockUnit)}　｜　発注　${qtyWithUnit(order, ing.orderUnit)}`
+    );
   });
   lines.push("");
   lines.push("■ お肉");
   FORM.meat.forEach((ing) => {
     const stock = num(`${ing.id}_stock`);
     const order = num(`${ing.id}_order`);
-    lines.push(shareItemHead(ing.name));
-    lines.push(shareStockOrderSub(stock, order, ing.stockUnit, ing.orderUnit));
-    if (ing.constant) lines.push(shareSubLine(`※ ${ing.constant}`));
+    lines.push("");
+    lines.push(`【${ing.name}】`);
+    if (ing.constant) lines.push(`  ※ ${ing.constant}`);
+    lines.push(
+      `  在庫　${qtyWithUnit(stock, ing.stockUnit)}　｜　発注　${qtyWithUnit(order, ing.orderUnit)}`
+    );
   });
   lines.push("");
   lines.push("■ テイクアウト用容器");
   FORM.takeout.forEach((group) => {
+    lines.push("");
     lines.push(...takeoutShareLines(group));
   });
   lines.push("");
@@ -1044,12 +1036,10 @@ function buildShareText() {
   lines.push(DIVIDER);
   const timingLabel =
     state.timing === "good" ? "◎ 良い" : state.timing === "bad" ? "△ 悪い" : "（未選択）";
-  lines.push("■ タイミー評価");
-  lines.push(`  ・${timingLabel}`);
+  lines.push(`■ タイミー評価　${timingLabel}`);
   const remark = String(state.remark || "").trim();
   if (remark) {
-    lines.push("■ 備考");
-    lines.push(`  ・${remark.replace(/\n/g, "\n     ")}`);
+    lines.push(`  備考：${remark}`);
   }
 
   return lines.join("\n").trimEnd();
@@ -1135,7 +1125,7 @@ function renderPreviewUI() {
           ${ing.constant ? `<p class="preview-note">※ ${escapeHtml(ing.constant)}</p>` : ""}
           <div class="preview-stock-row">
             <span>在庫 <strong>${escapeHtml(qtyWithUnit(stock, ing.stockUnit))}</strong></span>
-            <span class="preview-sep">／</span>
+            <span class="preview-sep">｜</span>
             <span>発注 <strong>${escapeHtml(qtyWithUnit(order, ing.orderUnit))}</strong></span>
           </div>
         </div>`;
@@ -1154,7 +1144,7 @@ function renderPreviewUI() {
           ${ing.constant ? `<p class="preview-note">※ ${escapeHtml(ing.constant)}</p>` : ""}
           <div class="preview-stock-row">
             <span>在庫 <strong>${escapeHtml(qtyWithUnit(stock, ing.stockUnit))}</strong></span>
-            <span class="preview-sep">／</span>
+            <span class="preview-sep">｜</span>
             <span>発注 <strong>${escapeHtml(qtyWithUnit(order, ing.orderUnit))}</strong></span>
           </div>
         </div>`;
