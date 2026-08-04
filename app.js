@@ -1196,7 +1196,7 @@ function shareToLine(text) {
 }
 
 function openDialog(dlg) {
-  renderPreviewUI();
+  if (dlg?.id === "previewDialog") renderPreviewUI();
   if (typeof dlg.showModal === "function") {
     try {
       dlg.showModal();
@@ -1232,6 +1232,15 @@ function init() {
   renderForm();
 
   const previewDialog = document.getElementById("previewDialog");
+  const oilGuideDialog = document.getElementById("oilGuideDialog");
+
+  document.getElementById("oilGuideBtn")?.addEventListener("click", () => {
+    openDialog(oilGuideDialog);
+  });
+
+  document.getElementById("closeOilGuide")?.addEventListener("click", () => {
+    closeDialog(oilGuideDialog);
+  });
 
   document.getElementById("copyBtn").addEventListener("click", async () => {
     if (!guardPrepBeforeSend()) return;
